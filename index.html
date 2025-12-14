@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All In One - Tư Ngữ Audio</title>
+    <title>All In One - Tư Ngữ Audio (Pro)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
         :root {
             /* 2025 Modern Dark Palette */
             --bg-dark: #09090b;
-            --bg-card: rgba(24, 24, 27, 0.85); /* Tăng độ đục nhẹ để text dễ đọc hơn */
+            --bg-card: rgba(24, 24, 27, 0.85);
             --border-subtle: rgba(255, 255, 255, 0.08);
             --border-hover: rgba(255, 255, 255, 0.15);
             
@@ -20,7 +20,7 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --accent: #8b5cf6; /* Thêm màu accent cho tính năng mới */
+            --accent: #8b5cf6;
             
             --text-main: #fafafa;
             --text-muted: #a1a1aa;
@@ -51,7 +51,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 1vh 1vw; /* Giảm padding viền để tối ưu diện tích */
+            padding: 1vh 1vw;
         }
 
         /* --- LAYOUT GRID SYSTEM --- */
@@ -64,7 +64,6 @@
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
             display: grid;
-            /* Chuyển sang minmax để sidebar linh hoạt hơn trên màn hình nhỏ */
             grid-template-columns: minmax(320px, 380px) 1fr;
             grid-template-rows: 60px 1fr;
             gap: 0;
@@ -107,15 +106,87 @@
         /* --- SIDEBAR (LEFT) --- */
         .sidebar {
             border-right: 1px solid var(--border-subtle);
-            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
+            overflow: hidden;
             height: 100%;
             background: rgba(0,0,0,0.2);
         }
 
+        /* === NEW: TAB SYSTEM STYLES === */
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.02);
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover { background: rgba(255,255,255,0.03); color: var(--text-main); }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            flex: 1; /* Chiếm hết chiều cao còn lại trước khi đến Log */
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* === NEW: SEARCH UI STYLES === */
+        .nav-controls {
+            display: none; /* Chỉ hiện khi có kết quả tìm kiếm */
+            grid-template-columns: 40px 1fr 40px;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .nav-controls.active { display: grid; }
+        
+        .btn-nav {
+            background: rgba(255,255,255,0.1); border: 1px solid var(--border-subtle);
+            color: var(--text-main); border-radius: var(--radius-md); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-nav:hover { background: var(--primary); border-color: var(--primary); }
+        
+        .nav-counter {
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md); display: flex; align-items: center;
+            justify-content: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);
+        }
+
+        .checkbox-row {
+            display: flex; align-items: center; gap: 10px; margin-top: 5px;
+        }
+        .checkbox-row label { font-size: 0.8rem; color: var(--text-muted); cursor: pointer; user-select: none; }
+        .checkbox-row input { width: auto; }
+
+        /* === EXISTING STYLES (Preserved) === */
         .section-title {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -128,12 +199,7 @@
             gap: 8px;
         }
 
-        /* Input Groups */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 10px; }
 
         textarea, input {
             background: rgba(0, 0, 0, 0.3);
@@ -154,83 +220,45 @@
             background: rgba(0, 0, 0, 0.5);
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
-        /* Radio Grid */
-        .radio-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-        }
-
+        .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
         .radio-item { position: relative; }
         .radio-item input { display: none; }
-
         .radio-item label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border-subtle);
-            padding: 8px;
-            border-radius: var(--radius-md);
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-muted);
-            font-weight: 500;
-            white-space: nowrap;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+            padding: 8px; border-radius: var(--radius-md); font-size: 0.75rem;
+            cursor: pointer; transition: all 0.2s; color: var(--text-muted);
+            font-weight: 500; white-space: nowrap;
         }
+        .radio-item input:checked + label { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: #fff; }
 
-        .radio-item input:checked + label {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: var(--primary);
-            color: #fff;
-        }
-
-        /* Logs Area */
         .log-container {
-            flex: 1; /* Để nó tự co giãn lấp đầy khoảng trống còn lại */
-            display: flex;
-            flex-direction: column;
-            min-height: 150px;
-            max-height: 300px;
-            border: 1px solid var(--border-subtle);
-            background: rgba(0,0,0,0.3);
-            border-radius: var(--radius-md);
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            height: 180px; /* Fixed height for log area */
+            flex-shrink: 0;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(0,0,0,0.4);
         }
         
         .log-header {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border-subtle);
-            font-size: 0.7rem;
-            background: rgba(255,255,255,0.02);
-            display: flex;
-            justify-content: space-between;
+            padding: 8px 12px; border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.7rem; background: rgba(255,255,255,0.02);
+            display: flex; justify-content: space-between;
         }
 
         .log-content {
-            padding: 10px;
-            overflow-y: auto;
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            padding: 10px; overflow-y: auto; font-family: var(--font-mono);
+            font-size: 0.7rem; flex: 1; display: flex; flex-direction: column; gap: 4px;
         }
 
         .log-line { 
-            display: block; 
-            word-break: break-word; 
-            white-space: pre-wrap;
-            line-height: 1.4;
-            padding-bottom: 2px;
+            display: block; word-break: break-word; white-space: pre-wrap;
+            line-height: 1.4; padding-bottom: 2px;
             border-bottom: 1px dashed rgba(255,255,255,0.05);
         }
         .log-line:last-child { border-bottom: none; }
@@ -240,218 +268,103 @@
         .text-error { color: #f87171; }
         .text-warn { color: #fbbf24; }
 
-        /* Main Button */
         .btn-primary {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary), #2563eb);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.1s;
+            width: 100%; background: linear-gradient(135deg, var(--primary), #2563eb);
+            color: white; border: none; padding: 12px; border-radius: var(--radius-md);
+            font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; transition: transform 0.1s;
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
-        
         .btn-primary:active { transform: scale(0.98); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; filter: grayscale(1); }
 
-        /* Secondary Action Button (Small) */
         .btn-secondary {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            padding: 10px;
-            border-radius: var(--radius-md);
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            width: 100%; background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-subtle); color: var(--text-main);
+            padding: 10px; border-radius: var(--radius-md); font-size: 0.8rem;
+            font-weight: 500; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
         }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); color: var(--accent); }
 
-        /* Progress Bar */
         .progress-wrapper {
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            margin-top: 10px;
-            overflow: hidden;
-            display: none;
+            height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
+            margin-top: 10px; overflow: hidden; display: none;
         }
-        .progress-fill {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s ease; }
 
-        /* --- MAIN CONTENT (RIGHT) --- */
         .main-area {
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 15px;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
+            display: flex; flex-direction: column; padding: 20px;
+            gap: 15px; height: 100%; overflow: hidden; position: relative;
         }
 
-        /* Toolbar */
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding-bottom: 5px;
-        }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 5px; }
 
         .btn-tool {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: var(--radius-md);
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+            color: var(--text-muted); padding: 8px 14px; border-radius: var(--radius-md);
+            font-size: 0.8rem; font-weight: 500; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
         }
-
-        .btn-tool:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            border-color: var(--border-hover);
-        }
-
+        .btn-tool:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: var(--border-hover); }
         .btn-tool.danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
         
-        /* Editor Wrapper */
         .editor-wrapper {
-            flex: 1;
-            position: relative;
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            background: rgba(0,0,0,0.25);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            flex: 1; position: relative; border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg); background: rgba(0,0,0,0.25);
+            overflow: hidden; display: flex; flex-direction: column;
         }
 
         .editor-header {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            padding: 10px 20px; background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border-subtle); display: flex;
+            justify-content: space-between; align-items: center;
+            font-size: 0.75rem; color: var(--text-muted);
         }
 
         #editor {
-            flex: 1;
-            width: 100%;
-            border: none;
-            background: transparent;
-            padding: 20px;
-            font-family: var(--font-sans);
-            font-size: 1rem;
-            line-height: 1.6;
-            color: #e4e4e7;
-            border-radius: 0;
-            overflow-y: auto;
+            flex: 1; width: 100%; border: none; background: transparent; padding: 20px;
+            font-family: var(--font-sans); font-size: 1rem; line-height: 1.6;
+            color: #e4e4e7; border-radius: 0; overflow-y: auto;
         }
 
-        /* Action Footer */
-        .action-footer {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: auto;
-        }
+        .action-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: auto; }
 
         .btn-action {
-            padding: 12px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-subtle);
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.05); color: #fff; font-weight: 500; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s;
         }
-
         .btn-action:hover { background: rgba(255,255,255,0.1); }
         .btn-action.primary { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
         .btn-action.primary:hover { background: rgba(16, 185, 129, 0.25); }
 
-        /* --- UTILS --- */
         .spinner {
-            width: 16px; height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: none;
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff; border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Toast */
         .toast {
             position: fixed; bottom: 30px; right: 30px;
-            background: rgba(24, 24, 27, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-subtle);
-            padding: 12px 24px;
-            border-radius: var(--radius-md);
-            display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 1000;
+            background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle); padding: 12px 24px;
+            border-radius: var(--radius-md); display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(100px); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000;
         }
         .toast.show { transform: translateY(0); opacity: 1; }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
         @media (max-width: 1024px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: 60px auto 1fr;
-                border-radius: 0;
-                border: none;
-                height: 100vh;
-            }
+            .app-container { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; border-radius: 0; border: none; height: 100vh; }
             body { padding: 0; }
-            
-            .sidebar {
-                height: auto;
-                max-height: 40vh; /* Giới hạn chiều cao sidebar trên mobile */
-                border-right: none;
-                border-bottom: 1px solid var(--border-subtle);
-                padding: 15px;
-            }
-            
+            .sidebar { height: auto; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 0; }
             .main-area { padding: 15px; }
             .toolbar { overflow-x: auto; padding-bottom: 10px; }
+            .tab-content { padding: 15px; }
+            .log-container { height: 120px; }
         }
     </style>
 </head>
@@ -463,59 +376,106 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             All In One <span>Tư Ngữ Audio</span>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">v2025.2.0</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">v2025.25.12</div>
     </header>
 
     <aside class="sidebar">
-        <div class="input-group">
-            <div class="section-title">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                Danh sách Link
-            </div>
-            <textarea id="links" placeholder="Mỗi dòng một link..." style="height: 100px;"></textarea>
-        </div>
-
-        <div class="input-group">
-            <div class="section-title">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                Cấu hình Nguồn
-            </div>
-            
-            <div class="radio-grid">
-                <div class="radio-item"><input type="radio" id="s_custom" name="sourceType" value="custom" onchange="toggleConfig()" checked><label for="s_custom">Custom</label></div>
-                <div class="radio-item"><input type="radio" id="s_mongtruyen" name="sourceType" value="mongtruyen" onchange="toggleConfig()"><label for="s_mongtruyen">Mộng Truyện</label></div>
-                <div class="radio-item"><input type="radio" id="s_truyenfull" name="sourceType" value="truyenfull" onchange="toggleConfig()"><label for="s_truyenfull">Truyện Full</label></div>
-                <div class="radio-item"><input type="radio" id="s_wattpad" name="sourceType" value="wattpadvn" onchange="toggleConfig()"><label for="s_wattpad">WattpadVN</label></div>
-                <div class="radio-item"><input type="radio" id="s_raw" name="sourceType" value="raw_html" onchange="toggleConfig()"><label for="s_raw">Raw HTML</label></div>
-            </div>
-
-            <div id="customConfigBox" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">
-                <input id="customSelectors" placeholder="Selector (VD: .post-body)" />
-            </div>
-            
-            <input id="hiddenCode" placeholder="Regex xóa rác (VD: position: absolute;)" />
-        </div>
-
-        <div>
-            <button class="btn-primary" id="startBtn" onclick="startFetch()">
-                <div class="spinner" id="btnSpinner"></div>
-                <span id="btnText">Bắt đầu Fetch Dữ Liệu</span>
+        <div class="sidebar-tabs">
+            <button class="tab-btn active" onclick="switchTab('fetch')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Fetch Data
             </button>
-            <div class="progress-wrapper" id="progressContainer">
-                <div class="progress-fill" id="progressBar"></div>
+            <button class="tab-btn" onclick="switchTab('search')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Find & Replace
+            </button>
+        </div>
+
+        <div id="tab-fetch" class="tab-content active">
+            <div class="input-group">
+                <div class="section-title">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                    Danh sách Link
+                </div>
+                <textarea id="links" placeholder="Mỗi dòng một link..." style="height: 100px;"></textarea>
+            </div>
+
+            <div class="input-group">
+                <div class="section-title">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Cấu hình Nguồn
+                </div>
+                
+                <div class="radio-grid">
+                    <div class="radio-item"><input type="radio" id="s_custom" name="sourceType" value="custom" onchange="toggleConfig()" checked><label for="s_custom">Custom</label></div>
+                    <div class="radio-item"><input type="radio" id="s_mongtruyen" name="sourceType" value="mongtruyen" onchange="toggleConfig()"><label for="s_mongtruyen">Mộng Truyện</label></div>
+                    <div class="radio-item"><input type="radio" id="s_truyenfull" name="sourceType" value="truyenfull" onchange="toggleConfig()"><label for="s_truyenfull">Truyện Full</label></div>
+                    <div class="radio-item"><input type="radio" id="s_wattpad" name="sourceType" value="wattpadvn" onchange="toggleConfig()"><label for="s_wattpad">WattpadVN</label></div>
+                    <div class="radio-item"><input type="radio" id="s_raw" name="sourceType" value="raw_html" onchange="toggleConfig()"><label for="s_raw">Raw HTML</label></div>
+                </div>
+
+                <div id="customConfigBox" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">
+                    <input id="customSelectors" placeholder="Selector (VD: .post-body)" />
+                </div>
+                
+                <input id="hiddenCode" placeholder="Regex xóa rác (VD: position: absolute;)" />
+            </div>
+
+            <div>
+                <button class="btn-primary" id="startBtn" onclick="startFetch()">
+                    <div class="spinner" id="btnSpinner"></div>
+                    <span id="btnText">Bắt đầu Fetch Dữ Liệu</span>
+                </button>
+                <div class="progress-wrapper" id="progressContainer">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-top: 5px; border-top: 1px solid var(--border-subtle); padding-top: 15px;">
+                <div class="section-title" style="color: var(--accent);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Box Hiệu Chỉnh
+                </div>
+                <textarea id="promoKeywords" placeholder="Nhập từ khóa ngăn cách bởi dấu phẩy..." style="height: 60px; font-size: 0.75rem;"></textarea>
+                <button class="btn-secondary" onclick="injectPromo()">Chèn Lời Kêu Gọi</button>
             </div>
         </div>
 
-        <div class="input-group" style="margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 15px;">
-            <div class="section-title" style="color: var(--accent);">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                Box Hiệu Chỉnh & Chèn
+        <div id="tab-search" class="tab-content">
+            <div class="input-group">
+                <div class="section-title" style="color: var(--primary);">Tìm kiếm (Find)</div>
+                <textarea id="findStr" placeholder="Nhập văn bản cần tìm (Hỗ trợ nhiều dòng)..." style="height: 100px; border-color: var(--primary);"></textarea>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="useRegex"> <label for="useRegex">Regex</label>
+                    <input type="checkbox" id="caseSensitive" style="margin-left: 15px;"> <label for="caseSensitive">Phân biệt hoa/thường</label>
+                </div>
             </div>
-            <textarea id="promoKeywords" placeholder="Nhập từ khóa ngăn cách bởi dấu phẩy (VD: chương sau, phần tiếp)..." style="height: 60px; font-size: 0.75rem;"></textarea>
-            <button class="btn-secondary" onclick="injectPromo()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Chèn Lời Kêu Gọi
-            </button>
+
+            <div class="input-group">
+                <div class="section-title" style="color: var(--success);">Thay thế bằng (Replace)</div>
+                <textarea id="replaceStr" placeholder="Nội dung thay thế..." style="height: 80px; border-color: var(--success);"></textarea>
+            </div>
+
+            <div id="navControls" class="nav-controls">
+                <button class="btn-nav" onclick="navMatch(-1)" title="Trước">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <div class="nav-counter" id="navCounter">0 / 0</div>
+                <button class="btn-nav" onclick="navMatch(1)" title="Sau">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-direction: column;">
+                <button class="btn-secondary" onclick="initSearch()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Tìm & Duyệt (Scan)
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="replaceOne()" style="border-color: var(--success); color: var(--success);">Thay thế 1</button>
+                    <button class="btn-primary" onclick="replaceAll()" style="background: linear-gradient(135deg, var(--success), #059669);">Thay thế Hết</button>
+                </div>
+            </div>
         </div>
 
         <div class="log-container">
@@ -609,17 +569,11 @@
             const text = document.getElementById('btnText');
             const barWrap = document.getElementById('progressContainer');
             const bar = document.getElementById('progressBar');
-            
             if (state) {
-                btn.disabled = true;
-                spinner.style.display = 'block';
-                text.innerText = `Đang xử lý (0/${total})...`;
-                barWrap.style.display = 'block';
-                bar.style.width = '0%';
+                btn.disabled = true; spinner.style.display = 'block'; text.innerText = `Đang xử lý (0/${total})...`;
+                barWrap.style.display = 'block'; bar.style.width = '0%';
             } else {
-                btn.disabled = false;
-                spinner.style.display = 'none';
-                text.innerText = 'Bắt đầu Fetch Dữ Liệu';
+                btn.disabled = false; spinner.style.display = 'none'; text.innerText = 'Bắt đầu Fetch Dữ Liệu';
                 setTimeout(() => { barWrap.style.display = 'none'; }, 2000);
             }
         }
@@ -635,7 +589,117 @@
         document.getElementById('customConfigBox').style.display = (type === 'custom') ? 'flex' : 'none';
     }
 
-    /* ================= CORE LOGIC ================= */
+    // --- TAB SWITCHING (NEW) ---
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    /* ================= NEW FEATURE: FIND & REPLACE ENGINE ================= */
+    let searchState = { matches: [], currentIndex: -1 };
+
+    function getSearchRegex() {
+        const findStr = document.getElementById('findStr').value;
+        if (!findStr) return null;
+        const useRegex = document.getElementById('useRegex').checked;
+        const caseSensitive = document.getElementById('caseSensitive').checked;
+        const flags = 'g' + (caseSensitive ? '' : 'i');
+        try {
+            return useRegex ? new RegExp(findStr, flags) : new RegExp(findStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+        } catch { return null; }
+    }
+
+    function initSearch() {
+        const editor = document.getElementById('editor');
+        const regex = getSearchRegex();
+        
+        if (!editor.value) return UI.toast("Editor trống!", "warn");
+        if (!regex) return UI.toast("Nhập từ khóa tìm kiếm!", "warn");
+
+        searchState.matches = [];
+        let match;
+        while ((match = regex.exec(editor.value)) !== null) {
+            searchState.matches.push({ start: match.index, end: match.index + match[0].length });
+        }
+
+        const count = searchState.matches.length;
+        document.getElementById('navControls').classList.add('active');
+        
+        if (count > 0) {
+            searchState.currentIndex = 0;
+            updateNavUI();
+            highlightMatch();
+            UI.log(`Tìm thấy ${count} kết quả.`, 'success');
+        } else {
+            document.getElementById('navCounter').innerText = "0 / 0";
+            UI.toast("Không tìm thấy kết quả nào", "warn");
+        }
+    }
+
+    function updateNavUI() {
+        const current = searchState.currentIndex + 1;
+        const total = searchState.matches.length;
+        document.getElementById('navCounter').innerText = `${current} / ${total}`;
+    }
+
+    function highlightMatch() {
+        if (searchState.currentIndex < 0 || searchState.currentIndex >= searchState.matches.length) return;
+        const editor = document.getElementById('editor');
+        const match = searchState.matches[searchState.currentIndex];
+        
+        editor.focus();
+        editor.setSelectionRange(match.start, match.end);
+        
+        // Auto scroll trick
+        const fullText = editor.value;
+        editor.value = fullText.substring(0, match.end);
+        editor.scrollTop = editor.scrollHeight;
+        editor.value = fullText;
+        editor.setSelectionRange(match.start, match.end);
+    }
+
+    function navMatch(dir) {
+        if (searchState.matches.length === 0) return;
+        searchState.currentIndex += dir;
+        if (searchState.currentIndex >= searchState.matches.length) searchState.currentIndex = 0;
+        if (searchState.currentIndex < 0) searchState.currentIndex = searchState.matches.length - 1;
+        updateNavUI();
+        highlightMatch();
+    }
+
+    function replaceOne() {
+        if (searchState.matches.length === 0 || searchState.currentIndex === -1) return UI.toast("Hãy bấm Tìm kiếm trước", "warn");
+        const editor = document.getElementById('editor');
+        const replaceStr = document.getElementById('replaceStr').value;
+        const match = searchState.matches[searchState.currentIndex];
+        
+        const before = editor.value.substring(0, match.start);
+        const after = editor.value.substring(match.end);
+        
+        editor.value = before + replaceStr + after;
+        UI.toast("Đã thay thế vị trí hiện tại", "success");
+        initSearch(); // Re-scan index
+    }
+
+    function replaceAll() {
+        const regex = getSearchRegex();
+        if(!regex) return;
+        const editor = document.getElementById('editor');
+        const count = (editor.value.match(regex) || []).length;
+        if (count === 0) return UI.toast("Không có gì để thay", "warn");
+        
+        if(confirm(`Thay thế toàn bộ ${count} mục?`)) {
+            editor.value = editor.value.replace(regex, document.getElementById('replaceStr').value);
+            UI.toast(`Đã thay thế ${count} mục`, "success");
+            searchState.matches = [];
+            document.getElementById('navCounter').innerText = "0 / 0";
+            updateStats();
+        }
+    }
+
+    /* ================= EXISTING CORE LOGIC (UNTOUCHED) ================= */
     
     async function stableFetch(url) {
         const fetchWithTimeout = async (target, timeout = 6000) => {
@@ -756,7 +820,6 @@
         updateStats();
         UI.processing(false);
 
-        // --- LOG SUMMARY BLOCK ---
         let summaryMsg = `\n=== 📊 TỔNG KẾT QUÁ TRÌNH ===\n`;
         summaryMsg += `• Tổng số link: ${links.length}\n`;
         summaryMsg += `• Thành công: ${successCount}\n`;
@@ -770,66 +833,42 @@
             summaryMsg += `\n\n🎉 Tất cả hoàn hảo!`;
             UI.log(summaryMsg, 'success'); 
         }
-
         UI.toast(`Hoàn tất! ${successCount}/${links.length} thành công`, 'success');
-
     }
-
-    /* ================= TOOLS ================= */
 
     function formatWattpad() {
         const editor = document.getElementById("editor");
         const oldContent = editor.value;
         if (!oldContent) return UI.toast("Chưa có nội dung để lọc!", "warn");
-
-        // Logic cũ + Logic mới (Xóa dòng bắt đầu bằng === LINK)
         const lines = oldContent.split('\n').filter(line => {
             const t = line.trim();
-            // Điều kiện mới: Bắt đầu bằng === LINK
             if (t.startsWith('=== LINK')) return false;
-            
-            // Điều kiện cũ: Toàn dấu +, *, hoặc số trang
             return !(/^\++$/.test(t) || /^\*+$/.test(t) || /^(?:[1-9]|[12]\d|30)$/.test(t));
         });
-
         const newContent = lines.join('\n');
-        const removedChars = oldContent.length - newContent.length;
         const removedLines = oldContent.split('\n').length - lines.length;
-
         editor.value = newContent;
         UI.toast(`Đã xóa ${removedLines} dòng rác (bao gồm '=== LINK')`, "success");
         updateStats();
     }
     
-    // --- TÍNH NĂNG MỚI: CHÈN PROMO ---
     function injectPromo() {
         const editor = document.getElementById("editor");
         const keywordsInput = document.getElementById("promoKeywords").value;
-        
         if (!editor.value) return UI.toast("Chưa có nội dung trong Editor!", "warn");
         if (!keywordsInput.trim()) return UI.toast("Vui lòng nhập từ khóa vào Box Hiệu Chỉnh!", "warn");
-
         const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
         const promoText = "Nếu bạn yêu thích nội dung này thì nhớ like video và nhấn nút đăng ký kênh để ủng hộ mình nha. Cảm ơn bạn rất nhiều.";
-        
         if (keywords.length === 0) return;
-
         const lines = editor.value.split('\n');
         let newLines = [];
         let injectCount = 0;
-
         lines.forEach(line => {
             const lowerLine = line.toLowerCase();
-            // Kiểm tra xem dòng hiện tại có chứa bất kỳ từ khóa nào không
             const match = keywords.some(key => lowerLine.includes(key));
-            
-            if (match) {
-                newLines.push(promoText); // Chèn câu promo TRƯỚC dòng đó
-                injectCount++;
-            }
+            if (match) { newLines.push(promoText); injectCount++; }
             newLines.push(line);
         });
-
         editor.value = newLines.join('\n');
         UI.toast(`Đã chèn promo vào ${injectCount} vị trí`, "success");
         updateStats();
@@ -874,26 +913,9 @@
         updateStats();
     }
 
-    function clearEditor() {
-        document.getElementById("editor").value = "";
-        updateStats();
-    }
-
-    function copyText() {
-        const el = document.getElementById("editor");
-        el.select();
-        navigator.clipboard.writeText(el.value).then(() => UI.toast("Đã copy vào Clipboard", "success"));
-    }
-
-    function downloadText() {
-        const c = document.getElementById("editor").value;
-        if(!c) return;
-        const blob = new Blob([c], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `AIO_Result_${Date.now()}.txt`;
-        a.click();
-    }
+    function clearEditor() { document.getElementById("editor").value = ""; updateStats(); }
+    function copyText() { const el = document.getElementById("editor"); el.select(); navigator.clipboard.writeText(el.value).then(() => UI.toast("Đã copy vào Clipboard", "success")); }
+    function downloadText() { const c = document.getElementById("editor").value; if(!c) return; const blob = new Blob([c], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `AIO_Result_${Date.now()}.txt`; a.click(); }
 </script>
 
 </body>
