@@ -10,10 +10,10 @@
     <style>
         :root {
             /* --- COLOR PALETTE 2025 --- */
-            --bg-app: #09090b;       /* Nền app tối sâu */
-            --bg-panel: #121215;     /* Nền sidebar/panel */
-            --bg-surface: #18181b;   /* Nền các element con */
-            --bg-input: #202024;     /* Nền input */
+            --bg-app: #09090b;       
+            --bg-panel: #121215;     
+            --bg-surface: #18181b;   
+            --bg-input: #202024;     
             
             --border-base: rgba(255, 255, 255, 0.08);
             --border-highlight: rgba(255, 255, 255, 0.15);
@@ -45,7 +45,6 @@
 
         body {
             background-color: var(--bg-app);
-            /* Hiệu ứng nền noise nhẹ hiện đại hơn */
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 40%);
             color: var(--text-main);
             font-family: var(--font-sans);
@@ -197,7 +196,7 @@
             background: var(--bg-surface);
         }
 
-        textarea { line-height: 1.5; }
+        textarea { line-height: 1.6; }
 
         /* Radio Grid Modernization */
         .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -321,10 +320,11 @@
             flex: 1;
             border: 1px solid var(--border-base);
             border-radius: var(--radius-lg);
-            background: var(--bg-surface); /* Tách biệt editor khỏi nền app */
+            background: var(--bg-surface);
             overflow: hidden;
             display: flex; flex-direction: column;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .editor-header {
@@ -339,13 +339,20 @@
             flex: 1; width: 100%; border: none; background: transparent;
             padding: 20px;
             font-family: var(--font-sans);
-            font-size: 0.95rem; /* Dễ đọc hơn */
-            line-height: 1.7;
+            font-size: 0.95rem;
+            line-height: 1.6;
             color: var(--text-main);
             resize: none;
             box-shadow: none;
+            white-space: pre-wrap; /* Quan trọng cho word wrapping */
+            word-wrap: break-word;
         }
         #editor:focus { box-shadow: none; background: transparent; }
+        
+        ::selection {
+            background: rgba(59, 130, 246, 0.3);
+            color: #fff;
+        }
 
         /* --- FOOTER ACTIONS --- */
         .action-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; }
@@ -448,7 +455,7 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             All In One <span>Tư Ngữ Audio</span>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">v2025.25.12</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">v2025.15.12</div>
     </header>
 
     <aside class="sidebar">
@@ -517,14 +524,14 @@
                 <div class="section-title" style="color: var(--primary);">Tìm kiếm (Find)</div>
                 <textarea id="findStr" placeholder="Nhập văn bản cần tìm (Hỗ trợ nhiều dòng)..." style="height: 100px; border-color: var(--primary);"></textarea>
                 <div class="checkbox-row">
-                    <input type="checkbox" id="useRegex"> <label for="useRegex">Regex</label>
+                    <input type="checkbox" id="useRegex"> <label for="useRegex" title="Sử dụng biểu thức chính quy">Regex Mode</label>
                     <input type="checkbox" id="caseSensitive" style="margin-left: 15px;"> <label for="caseSensitive">Phân biệt hoa/thường</label>
                 </div>
             </div>
 
             <div class="input-group">
                 <div class="section-title" style="color: var(--success);">Thay thế bằng (Replace)</div>
-                <textarea id="replaceStr" placeholder="Nội dung thay thế..." style="height: 80px; border-color: var(--success);"></textarea>
+                <textarea id="replaceStr" placeholder="Nội dung thay thế (Hỗ trợ nhiều dòng)..." style="height: 80px; border-color: var(--success);"></textarea>
             </div>
 
             <div id="navControls" class="nav-controls">
@@ -543,7 +550,7 @@
                     Tìm & Duyệt (Scan)
                 </button>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-secondary" onclick="replaceOne()" style="border-color: var(--success); color: var(--success);">Thay thế 1</button>
+                    <button class="btn-secondary" onclick="replaceOne()" style="border-color: var(--success); color: var(--success);">Thay thế hiện tại</button>
                     <button class="btn-primary" onclick="replaceAll()" style="background: linear-gradient(135deg, var(--success), #059669);">Thay thế Hết</button>
                 </div>
             </div>
@@ -593,7 +600,7 @@
                 <span>TEXT EDITOR</span>
                 <span id="charCount">0 chars</span>
             </div>
-            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." oninput="updateStats()"></textarea>
+            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." oninput="onEditorInput()"></textarea>
         </div>
 
         <div class="action-footer">
@@ -650,6 +657,12 @@
         }
     };
 
+    function onEditorInput() {
+        // Đánh dấu editor đã bị thay đổi, cần scan lại khi tìm kiếm
+        searchState.isDirty = true;
+        updateStats();
+    }
+
     function updateStats() {
         const len = document.getElementById('editor').value.length;
         document.getElementById('charCount').innerText = `${len.toLocaleString()} chars`;
@@ -660,7 +673,6 @@
         document.getElementById('customConfigBox').style.display = (type === 'custom') ? 'flex' : 'none';
     }
 
-    // --- TAB SWITCHING (NEW) ---
     function switchTab(tabName) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
@@ -668,18 +680,41 @@
         document.getElementById(`tab-${tabName}`).classList.add('active');
     }
 
-    /* ================= NEW FEATURE: FIND & REPLACE ENGINE ================= */
-    let searchState = { matches: [], currentIndex: -1 };
+    /* ================= ADVANCED FIND & REPLACE ENGINE (FIXED) ================= */
+    let searchState = { matches: [], currentIndex: -1, isDirty: false };
 
     function getSearchRegex() {
         const findStr = document.getElementById('findStr').value;
         if (!findStr) return null;
         const useRegex = document.getElementById('useRegex').checked;
         const caseSensitive = document.getElementById('caseSensitive').checked;
-        const flags = 'g' + (caseSensitive ? '' : 'i');
+        
+        // Flag: global (g), dotAll (s), ignoreCase (i)
+        let flags = 'gs'; 
+        if (!caseSensitive) flags += 'i';
+        
         try {
-            return useRegex ? new RegExp(findStr, flags) : new RegExp(findStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            if (useRegex) {
+                return new RegExp(findStr, flags);
+            } else {
+                return new RegExp(findStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            }
         } catch { return null; }
+    }
+
+    function performScan() {
+        const editor = document.getElementById('editor');
+        const regex = getSearchRegex();
+        if (!editor.value || !regex) return [];
+
+        let matches = [];
+        let match;
+        regex.lastIndex = 0; 
+        
+        while ((match = regex.exec(editor.value)) !== null) {
+            matches.push({ start: match.index, end: match.index + match[0].length });
+        }
+        return matches;
     }
 
     function initSearch() {
@@ -689,21 +724,28 @@
         if (!editor.value) return UI.toast("Editor trống!", "warn");
         if (!regex) return UI.toast("Nhập từ khóa tìm kiếm!", "warn");
 
-        searchState.matches = [];
-        let match;
-        while ((match = regex.exec(editor.value)) !== null) {
-            searchState.matches.push({ start: match.index, end: match.index + match[0].length });
-        }
+        searchState.matches = performScan();
+        searchState.isDirty = false; // Đã scan mới nhất
 
         const count = searchState.matches.length;
         document.getElementById('navControls').classList.add('active');
         
         if (count > 0) {
-            searchState.currentIndex = 0;
+            // Tìm match gần con trỏ hiện tại nhất để bắt đầu
+            const currentPos = editor.selectionStart;
+            let bestIndex = 0;
+            for(let i=0; i < count; i++) {
+                if(searchState.matches[i].start >= currentPos) {
+                    bestIndex = i;
+                    break;
+                }
+            }
+            searchState.currentIndex = bestIndex;
             updateNavUI();
             highlightMatch();
             UI.log(`Tìm thấy ${count} kết quả.`, 'success');
         } else {
+            searchState.currentIndex = -1;
             document.getElementById('navCounter').innerText = "0 / 0";
             UI.toast("Không tìm thấy kết quả nào", "warn");
         }
@@ -715,43 +757,136 @@
         document.getElementById('navCounter').innerText = `${current} / ${total}`;
     }
 
+    // --- PIXEL PERFECT SCROLL LOGIC ---
+    function scrollToMatch(start, end) {
+        const editor = document.getElementById('editor');
+        const text = editor.value;
+
+        // Tạo một div "gương" (mirror) để đo vị trí chính xác
+        const mirror = document.createElement('div');
+        const style = window.getComputedStyle(editor);
+        
+        // Copy toàn bộ style quan trọng từ textarea sang mirror div
+        const props = [
+            'font-family', 'font-size', 'font-weight', 'line-height',
+            'padding', 'border', 'width', 'white-space', 'word-wrap', 'word-break',
+            'box-sizing'
+        ];
+        props.forEach(p => mirror.style[p] = style[p]);
+        
+        // Mirror div phải ẩn nhưng vẫn render để đo được
+        mirror.style.position = 'absolute';
+        mirror.style.visibility = 'hidden';
+        mirror.style.top = '0';
+        mirror.style.left = '0';
+        mirror.style.overflow = 'hidden'; // Không hiện scrollbar
+        
+        // Nội dung trước match
+        const beforeText = text.substring(0, start);
+        const matchText = text.substring(start, end);
+        
+        // Tạo span đánh dấu
+        mirror.textContent = beforeText;
+        const span = document.createElement('span');
+        span.textContent = matchText;
+        mirror.appendChild(span);
+        
+        document.body.appendChild(mirror);
+        
+        // Lấy tọa độ chính xác của span
+        const offsetTop = span.offsetTop;
+        const editorHeight = editor.clientHeight;
+        
+        // Cuộn textarea đến vị trí đó (căn giữa)
+        const scrollTarget = offsetTop - (editorHeight / 2) + parseInt(style.paddingTop);
+        
+        editor.scrollTo({
+            top: scrollTarget > 0 ? scrollTarget : 0,
+            behavior: 'smooth'
+        });
+        
+        // Dọn dẹp
+        document.body.removeChild(mirror);
+    }
+
     function highlightMatch() {
+        if (searchState.matches.length === 0) return;
         if (searchState.currentIndex < 0 || searchState.currentIndex >= searchState.matches.length) return;
+        
         const editor = document.getElementById('editor');
         const match = searchState.matches[searchState.currentIndex];
         
+        // 1. Select text
         editor.focus();
         editor.setSelectionRange(match.start, match.end);
         
-        // Auto scroll trick
-        const fullText = editor.value;
-        editor.value = fullText.substring(0, match.end);
-        editor.scrollTop = editor.scrollHeight;
-        editor.value = fullText;
-        editor.setSelectionRange(match.start, match.end);
+        // 2. Custom Scroll logic (Fix lỗi cuộn thiếu)
+        scrollToMatch(match.start, match.end);
     }
 
     function navMatch(dir) {
-        if (searchState.matches.length === 0) return;
-        searchState.currentIndex += dir;
-        if (searchState.currentIndex >= searchState.matches.length) searchState.currentIndex = 0;
-        if (searchState.currentIndex < 0) searchState.currentIndex = searchState.matches.length - 1;
+        // --- LOGIC XỬ LÝ KHI NGƯỜI DÙNG TỰ SỬA TEXT (Fix lỗi nhảy lung tung) ---
+        if (searchState.isDirty) {
+            // Nếu text đã bị sửa, scan lại âm thầm để lấy vị trí mới đúng nhất
+            const currentPos = document.getElementById('editor').selectionStart;
+            searchState.matches = performScan();
+            searchState.isDirty = false;
+            
+            if(searchState.matches.length === 0) {
+                document.getElementById('navCounter').innerText = "0 / 0";
+                return;
+            }
+
+            // Tìm match tiếp theo dựa trên vị trí con trỏ hiện tại
+            // Nếu bấm Next (1): tìm match đầu tiên SAU con trỏ
+            // Nếu bấm Prev (-1): tìm match đầu tiên TRƯỚC con trỏ
+            if (dir === 1) {
+                searchState.currentIndex = searchState.matches.findIndex(m => m.start >= currentPos);
+                if (searchState.currentIndex === -1) searchState.currentIndex = 0; // Wrap around
+            } else {
+                // Tìm match gần nhất phía sau
+                for (let i = searchState.matches.length - 1; i >= 0; i--) {
+                    if (searchState.matches[i].start < currentPos) {
+                        searchState.currentIndex = i;
+                        break;
+                    }
+                }
+                if (searchState.currentIndex === -1) searchState.currentIndex = searchState.matches.length - 1;
+            }
+        } else {
+            // Logic điều hướng bình thường nếu không sửa gì
+            if (searchState.matches.length === 0) return;
+            searchState.currentIndex += dir;
+            if (searchState.currentIndex >= searchState.matches.length) searchState.currentIndex = 0;
+            if (searchState.currentIndex < 0) searchState.currentIndex = searchState.matches.length - 1;
+        }
+
         updateNavUI();
         highlightMatch();
     }
 
     function replaceOne() {
-        if (searchState.matches.length === 0 || searchState.currentIndex === -1) return UI.toast("Hãy bấm Tìm kiếm trước", "warn");
+        // Nếu dirty, phải scan lại trước khi replace để đảm bảo đúng vị trí
+        if (searchState.isDirty || searchState.matches.length === 0) {
+            initSearch();
+            if (searchState.matches.length === 0) return UI.toast("Không tìm thấy gì để thay", "warn");
+        }
+
+        if (searchState.currentIndex === -1) return UI.toast("Hãy chọn một kết quả", "warn");
+        
         const editor = document.getElementById('editor');
         const replaceStr = document.getElementById('replaceStr').value;
         const match = searchState.matches[searchState.currentIndex];
         
-        const before = editor.value.substring(0, match.start);
-        const after = editor.value.substring(match.end);
+        // Thay thế
+        editor.setRangeText(replaceStr, match.start, match.end, 'select');
+        UI.toast("Đã thay thế", "success");
         
-        editor.value = before + replaceStr + after;
-        UI.toast("Đã thay thế vị trí hiện tại", "success");
-        initSearch(); // Re-scan index
+        // Sau khi thay thế, độ dài văn bản thay đổi -> đánh dấu dirty để lần bấm Next sau sẽ tự re-scan
+        searchState.isDirty = true;
+        
+        // Cập nhật thống kê
+        updateStats();
     }
 
     function replaceAll() {
@@ -761,17 +896,20 @@
         const count = (editor.value.match(regex) || []).length;
         if (count === 0) return UI.toast("Không có gì để thay", "warn");
         
-        if(confirm(`Thay thế toàn bộ ${count} mục?`)) {
-            editor.value = editor.value.replace(regex, document.getElementById('replaceStr').value);
+        if(confirm(`Thay thế toàn bộ ${count} vị trí?`)) {
+            const replaceStr = document.getElementById('replaceStr').value;
+            editor.value = editor.value.replace(regex, replaceStr);
+            
             UI.toast(`Đã thay thế ${count} mục`, "success");
+            
             searchState.matches = [];
             document.getElementById('navCounter').innerText = "0 / 0";
+            searchState.isDirty = true;
             updateStats();
         }
     }
 
-    /* ================= EXISTING CORE LOGIC (UNTOUCHED) ================= */
-    
+    /* ================= CORE FETCH LOGIC (UNCHANGED) ================= */
     async function stableFetch(url) {
         const fetchWithTimeout = async (target, timeout = 6000) => {
             const controller = new AbortController();
