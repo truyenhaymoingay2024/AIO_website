@@ -462,11 +462,11 @@
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('fetch')">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Fetch Data
+                Lấy dữ liệu
             </button>
             <button class="tab-btn" onclick="switchTab('search')">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                Find & Replace
+                Tìm kiếm & Thay thế
             </button>
         </div>
 
@@ -521,7 +521,7 @@
 
         <div id="tab-search" class="tab-content">
             <div class="input-group">
-                <div class="section-title" style="color: var(--primary);">Tìm kiếm (Find)</div>
+                <div class="section-title" style="color: var(--primary);">Tìm kiếm</div>
                 <textarea id="findStr" placeholder="Nhập văn bản cần tìm (Hỗ trợ nhiều dòng)..." style="height: 100px; border-color: var(--primary);"></textarea>
                 <div class="checkbox-row">
                     <input type="checkbox" id="useRegex"> <label for="useRegex" title="Sử dụng biểu thức chính quy">Regex Mode</label>
@@ -530,7 +530,7 @@
             </div>
 
             <div class="input-group">
-                <div class="section-title" style="color: var(--success);">Thay thế bằng (Replace)</div>
+                <div class="section-title" style="color: var(--success);">Thay thế bằng</div>
                 <textarea id="replaceStr" placeholder="Nội dung thay thế (Hỗ trợ nhiều dòng)..." style="height: 80px; border-color: var(--success);"></textarea>
             </div>
 
@@ -547,7 +547,7 @@
             <div style="display: flex; gap: 10px; flex-direction: column;">
                 <button class="btn-secondary" onclick="initSearch()">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    Tìm & Duyệt (Scan)
+                    Duyệt tìm
                 </button>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-secondary" onclick="replaceOne()" style="border-color: var(--success); color: var(--success);">Thay thế hiện tại</button>
@@ -1129,3 +1129,4 @@
 
 </body>
 </html>
+
