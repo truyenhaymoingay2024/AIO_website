@@ -3,46 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All In One - Tư Ngữ Audio (Pro)</title>
+    <title>All In One - Tư Ngữ Audio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 2025 Modern Dark Palette */
-            --bg-dark: #09090b;
-            --bg-card: rgba(24, 24, 27, 0.85);
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.15);
+            /* --- COLOR PALETTE 2025 --- */
+            --bg-app: #09090b;       /* Nền app tối sâu */
+            --bg-panel: #121215;     /* Nền sidebar/panel */
+            --bg-surface: #18181b;   /* Nền các element con */
+            --bg-input: #202024;     /* Nền input */
+            
+            --border-base: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(255, 255, 255, 0.15);
             
             --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --accent: #8b5cf6;
-            
-            --text-main: #fafafa;
+            --text-main: #ececec;
             --text-muted: #a1a1aa;
-            
-            --radius-lg: 16px;
-            --radius-md: 10px;
+            --text-dim: #52525b;
+
+            /* --- DIMENSIONS & SPACING --- */
+            --radius-lg: 12px;
+            --radius-md: 8px;
             --radius-sm: 6px;
             
-            --font-sans: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
             
-            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --glass-blur: blur(20px);
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* --- RESET & BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
+            background-color: var(--bg-app);
+            /* Hiệu ứng nền noise nhẹ hiện đại hơn */
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 40%);
             color: var(--text-main);
             font-family: var(--font-sans);
             height: 100vh;
@@ -51,321 +55,389 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 1vh 1vw;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- LAYOUT GRID SYSTEM --- */
+        /* --- LAYOUT CONTAINER --- */
         .app-container {
             width: 100%;
-            max-width: 1920px;
             height: 100%;
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
+            background: var(--bg-app);
             display: grid;
-            grid-template-columns: minmax(320px, 380px) 1fr;
-            grid-template-rows: 60px 1fr;
-            gap: 0;
+            grid-template-columns: 360px 1fr;
+            grid-template-rows: 56px 1fr;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: none;
         }
 
         /* --- HEADER --- */
         .app-header {
             grid-column: 1 / -1;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-base);
+            background: var(--bg-panel);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
-            background: rgba(255,255,255,0.01);
+            padding: 0 20px;
+            z-index: 10;
         }
 
         .brand {
             font-weight: 700;
-            font-size: 1.25rem;
-            background: linear-gradient(to right, #fff, #a1a1aa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1rem;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.01em;
         }
+
+        .brand svg { color: var(--primary); }
 
         .brand span {
-            font-size: 0.75rem;
-            background: var(--border-subtle);
-            padding: 4px 8px;
+            font-size: 0.7rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            padding: 3px 8px;
             border-radius: var(--radius-sm);
-            color: var(--text-muted);
-            -webkit-text-fill-color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
-        /* --- SIDEBAR (LEFT) --- */
+        /* --- SIDEBAR --- */
         .sidebar {
-            border-right: 1px solid var(--border-subtle);
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-base);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             height: 100%;
-            background: rgba(0,0,0,0.2);
         }
 
-        /* === NEW: TAB SYSTEM STYLES === */
+        /* --- TABS SYSTEM --- */
         .sidebar-tabs {
             display: flex;
-            border-bottom: 1px solid var(--border-subtle);
-            background: rgba(255,255,255,0.02);
-            flex-shrink: 0;
+            padding: 0 4px;
+            border-bottom: 1px solid var(--border-base);
+            background: var(--bg-panel);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px;
+            padding: 14px 0;
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
             cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
+            position: relative;
+            transition: color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
 
-        .tab-btn:hover { background: rgba(255,255,255,0.03); color: var(--text-main); }
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            background: rgba(59, 130, 246, 0.05);
+        .tab-btn:hover { color: var(--text-main); }
+
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0; right: 0;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 -2px 10px var(--primary-glow);
         }
 
         .tab-content {
             display: none;
             padding: 20px;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
             overflow-y: auto;
-            flex: 1; /* Chiếm hết chiều cao còn lại trước khi đến Log */
-            animation: fadeIn 0.3s ease;
+            flex: 1;
         }
-        
-        .tab-content.active { display: flex; }
+        .tab-content.active { display: flex; animation: fadeIn 0.3s var(--ease-out); }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* === NEW: SEARCH UI STYLES === */
-        .nav-controls {
-            display: none; /* Chỉ hiện khi có kết quả tìm kiếm */
-            grid-template-columns: 40px 1fr 40px;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-        .nav-controls.active { display: grid; }
-        
-        .btn-nav {
-            background: rgba(255,255,255,0.1); border: 1px solid var(--border-subtle);
-            color: var(--text-main); border-radius: var(--radius-md); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-nav:hover { background: var(--primary); border-color: var(--primary); }
-        
-        .nav-counter {
-            background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md); display: flex; align-items: center;
-            justify-content: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);
-        }
-
-        .checkbox-row {
-            display: flex; align-items: center; gap: 10px; margin-top: 5px;
-        }
-        .checkbox-row label { font-size: 0.8rem; color: var(--text-muted); cursor: pointer; user-select: none; }
-        .checkbox-row input { width: auto; }
-
-        /* === EXISTING STYLES (Preserved) === */
+        /* --- INPUTS & FORMS --- */
         .section-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
-        .input-group { display: flex; flex-direction: column; gap: 10px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
 
         textarea, input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-subtle);
+            background: var(--bg-input);
+            border: 1px solid var(--border-base);
             color: var(--text-main);
             border-radius: var(--radius-md);
-            padding: 10px;
+            padding: 10px 12px;
             font-family: var(--font-mono);
             font-size: 0.8rem;
             transition: all 0.2s;
-            resize: none;
             width: 100%;
         }
 
         textarea:focus, input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-surface);
         }
 
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        textarea { line-height: 1.5; }
 
-        .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-        .radio-item { position: relative; }
+        /* Radio Grid Modernization */
+        .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .radio-item input { display: none; }
         .radio-item label {
             display: flex; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-            padding: 8px; border-radius: var(--radius-md); font-size: 0.75rem;
-            cursor: pointer; transition: all 0.2s; color: var(--text-muted);
-            font-weight: 500; white-space: nowrap;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-base);
+            padding: 10px;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+            font-weight: 500;
         }
-        .radio-item input:checked + label { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: #fff; }
+        .radio-item label:hover { border-color: var(--border-highlight); color: var(--text-main); }
+        .radio-item input:checked + label {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+        }
 
+        /* --- BUTTONS --- */
+        .btn-primary {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { background: var(--bg-surface); color: var(--text-muted); border-color: var(--border-base); cursor: not-allowed; box-shadow: none; }
+
+        .btn-secondary {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-base);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.03); border-color: var(--text-muted); }
+
+        /* --- LOG AREA --- */
         .log-container {
             display: flex; flex-direction: column;
-            height: 180px; /* Fixed height for log area */
+            height: 180px;
             flex-shrink: 0;
-            border-top: 1px solid var(--border-subtle);
-            background: rgba(0,0,0,0.4);
+            border-top: 1px solid var(--border-base);
+            background: #0f0f11;
         }
-        
         .log-header {
-            padding: 8px 12px; border-bottom: 1px solid var(--border-subtle);
-            font-size: 0.7rem; background: rgba(255,255,255,0.02);
-            display: flex; justify-content: space-between;
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border-base);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.01);
         }
-
         .log-content {
-            padding: 10px; overflow-y: auto; font-family: var(--font-mono);
-            font-size: 0.7rem; flex: 1; display: flex; flex-direction: column; gap: 4px;
+            padding: 10px; overflow-y: auto;
+            font-family: var(--font-mono); font-size: 0.7rem;
+            display: flex; flex-direction: column; gap: 2px;
         }
-
-        .log-line { 
-            display: block; word-break: break-word; white-space: pre-wrap;
-            line-height: 1.4; padding-bottom: 2px;
-            border-bottom: 1px dashed rgba(255,255,255,0.05);
+        .log-line {
+            padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+            word-break: break-all; white-space: pre-wrap;
         }
-        .log-line:last-child { border-bottom: none; }
-        
         .text-info { color: #60a5fa; }
         .text-success { color: #34d399; }
         .text-error { color: #f87171; }
         .text-warn { color: #fbbf24; }
 
-        .btn-primary {
-            width: 100%; background: linear-gradient(135deg, var(--primary), #2563eb);
-            color: white; border: none; padding: 12px; border-radius: var(--radius-md);
-            font-weight: 600; font-size: 0.9rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            gap: 10px; transition: transform 0.1s;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; filter: grayscale(1); }
-
-        .btn-secondary {
-            width: 100%; background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-subtle); color: var(--text-main);
-            padding: 10px; border-radius: var(--radius-md); font-size: 0.8rem;
-            font-weight: 500; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); color: var(--accent); }
-
-        .progress-wrapper {
-            height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
-            margin-top: 10px; overflow: hidden; display: none;
-        }
-        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s ease; }
-
+        /* --- MAIN EDITOR AREA --- */
         .main-area {
-            display: flex; flex-direction: column; padding: 20px;
-            gap: 15px; height: 100%; overflow: hidden; position: relative;
+            display: flex; flex-direction: column;
+            padding: 20px; gap: 16px;
+            height: 100%; overflow: hidden;
+            background: var(--bg-app);
         }
 
-        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 5px; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 4px; }
 
         .btn-tool {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
-            color: var(--text-muted); padding: 8px 14px; border-radius: var(--radius-md);
-            font-size: 0.8rem; font-weight: 500; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+            background: transparent;
+            border: 1px solid transparent;
+            border-color: var(--border-base);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
         }
-        .btn-tool:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: var(--border-hover); }
-        .btn-tool.danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
-        
+        .btn-tool:hover { background: var(--bg-surface); color: var(--text-main); border-color: var(--border-base); }
+        .btn-tool.danger { color: var(--danger); }
+        .btn-tool.danger:hover { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
+
         .editor-wrapper {
-            flex: 1; position: relative; border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg); background: rgba(0,0,0,0.25);
-            overflow: hidden; display: flex; flex-direction: column;
+            flex: 1;
+            border: 1px solid var(--border-base);
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface); /* Tách biệt editor khỏi nền app */
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .editor-header {
-            padding: 10px 20px; background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid var(--border-subtle); display: flex;
-            justify-content: space-between; align-items: center;
-            font-size: 0.75rem; color: var(--text-muted);
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border-base);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);
         }
 
         #editor {
-            flex: 1; width: 100%; border: none; background: transparent; padding: 20px;
-            font-family: var(--font-sans); font-size: 1rem; line-height: 1.6;
-            color: #e4e4e7; border-radius: 0; overflow-y: auto;
+            flex: 1; width: 100%; border: none; background: transparent;
+            padding: 20px;
+            font-family: var(--font-sans);
+            font-size: 0.95rem; /* Dễ đọc hơn */
+            line-height: 1.7;
+            color: var(--text-main);
+            resize: none;
+            box-shadow: none;
         }
+        #editor:focus { box-shadow: none; background: transparent; }
 
-        .action-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: auto; }
+        /* --- FOOTER ACTIONS --- */
+        .action-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; }
 
         .btn-action {
-            padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);
-            background: rgba(255,255,255,0.05); color: #fff; font-weight: 500; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-base);
+            background: var(--bg-surface);
+            color: var(--text-muted);
+            font-weight: 600; font-size: 0.85rem;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: all 0.2s;
         }
-        .btn-action:hover { background: rgba(255,255,255,0.1); }
-        .btn-action.primary { background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
-        .btn-action.primary:hover { background: rgba(16, 185, 129, 0.25); }
+        .btn-action:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .btn-action.primary {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .btn-action.primary:hover {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
 
+        /* --- UTILS & TOAST --- */
         .spinner {
-            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff; border-radius: 50%;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+            border-radius: 50%;
             animation: spin 0.8s linear infinite; display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        .progress-wrapper {
+            height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px;
+            margin-top: 12px; overflow: hidden; display: none;
+        }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s ease; box-shadow: 0 0 10px var(--success); }
+
         .toast {
             position: fixed; bottom: 30px; right: 30px;
-            background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px);
-            border: 1px solid var(--border-subtle); padding: 12px 24px;
-            border-radius: var(--radius-md); display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(100px); opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-highlight);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: translateY(20px); opacity: 0; pointer-events: none;
+            transition: all 0.4s var(--ease-out); z-index: 1000;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        .toast span:first-child { font-size: 1.1rem; }
+        .toast span:last-child { font-size: 0.85rem; font-weight: 500; }
 
-        @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; border-radius: 0; border: none; height: 100vh; }
-            body { padding: 0; }
-            .sidebar { height: auto; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 0; }
-            .main-area { padding: 15px; }
-            .toolbar { overflow-x: auto; padding-bottom: 10px; }
-            .tab-content { padding: 15px; }
-            .log-container { height: 120px; }
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* --- NAV CONTROLS (SEARCH) --- */
+        .nav-controls {
+            display: none;
+            grid-template-columns: 36px 1fr 36px;
+            gap: 6px; margin-bottom: 5px;
         }
+        .nav-controls.active { display: grid; }
+        .btn-nav {
+            background: var(--bg-surface); border: 1px solid var(--border-base);
+            color: var(--text-main); border-radius: var(--radius-md); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; height: 32px;
+        }
+        .btn-nav:hover { border-color: var(--primary); color: var(--primary); }
+        .nav-counter {
+            background: transparent; border: 1px solid var(--border-base);
+            border-radius: var(--radius-md); display: flex; align-items: center;
+            justify-content: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);
+        }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .checkbox-row label { font-size: 0.75rem; color: var(--text-muted); cursor: pointer; user-select: none; }
+        .checkbox-row input { width: auto; margin-right: 4px; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; grid-template-rows: 50px auto 1fr; }
+            .sidebar { max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border-base); }
+            .main-area { padding: 15px; }
+            .log-container { height: 120px; }
+        }    
     </style>
 </head>
 <body>
@@ -411,7 +483,6 @@
                     <div class="radio-item"><input type="radio" id="s_mongtruyen" name="sourceType" value="mongtruyen" onchange="toggleConfig()"><label for="s_mongtruyen">Mộng Truyện</label></div>
                     <div class="radio-item"><input type="radio" id="s_truyenfull" name="sourceType" value="truyenfull" onchange="toggleConfig()"><label for="s_truyenfull">Truyện Full</label></div>
                     <div class="radio-item"><input type="radio" id="s_wattpad" name="sourceType" value="wattpadvn" onchange="toggleConfig()"><label for="s_wattpad">WattpadVN</label></div>
-                    <div class="radio-item"><input type="radio" id="s_raw" name="sourceType" value="raw_html" onchange="toggleConfig()"><label for="s_raw">Raw HTML</label></div>
                 </div>
 
                 <div id="customConfigBox" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">
