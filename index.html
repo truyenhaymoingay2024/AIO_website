@@ -1049,15 +1049,26 @@
         const editor = document.getElementById("editor");
         const oldContent = editor.value;
         if (!oldContent) return UI.toast("Chưa có nội dung để lọc!", "warn");
+        
         const lines = oldContent.split('\n').filter(line => {
             const t = line.trim();
+            
+            // 1. Loại bỏ các dòng '=== LINK'
             if (t.startsWith('=== LINK')) return false;
-            return !(/^\++$/.test(t) || /^\*+$/.test(t) || /^(?:[1-9]|[12]\d|30)$/.test(t));
+            
+            // 2. Các dòng chỉ chứa các ký tự rác (+, *, =)
+            if (/^\++$/.test(t) || /^\*+$/.test(t) || /^\=+$/.test(t)) return false;
+            
+            // 3. Các dòng chỉ chứa một số 1-1000: /^(?:[1-9]|[1-9]\d|[1-9]\d{2}|1000)$/
+            if (/^(?:[1-9]|[1-9]\d|[1-9]\d{2}|1000)$/.test(t)) return false;
+            
+            return true; // Giữ lại các dòng còn lại
         });
+        
         const newContent = lines.join('\n');
         const removedLines = oldContent.split('\n').length - lines.length;
         editor.value = newContent;
-        UI.toast(`Đã xóa ${removedLines} dòng rác (bao gồm '=== LINK')`, "success");
+        UI.toast(`Đã xóa ${removedLines} dòng rác (bao gồm '=== LINK' và dòng đánh số)`, "success");
         updateStats();
     }
     
@@ -1129,4 +1140,5 @@
 
 </body>
 </html>
+
 
