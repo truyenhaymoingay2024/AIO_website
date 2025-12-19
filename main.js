@@ -80,13 +80,14 @@ function switchTab(tabName) {
 function extractWattpadCOMContent(html, isFirstPage) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    let combinedContent = "";
+    let title = "";
+    let content = "";
 
     // 1. Lấy tiêu đề chương (Nếu là trang 1)
     if (isFirstPage) {
         const titleTag = doc.querySelector('h1.h2');
         if (titleTag) {
-            combinedContent += titleTag.innerText.trim().toUpperCase() + "\n\n";
+            title = titleTag.innerText.trim().toUpperCase();
         }
     }
 
@@ -94,10 +95,10 @@ function extractWattpadCOMContent(html, isFirstPage) {
     const paragraphs = doc.querySelectorAll('p[data-p-id]');
     paragraphs.forEach(p => {
         let txt = p.innerText.trim();
-        if (txt) combinedContent += txt + "\n\n";
+        if (txt) content += txt + "\n\n";
     });
 
-    return combinedContent;
+    return { title, content };
 }
 
 async function fetchWattpadCOM(url) {
@@ -115,14 +116,14 @@ async function fetchWattpadCOM(url) {
             if (response.ok) {
                 const html = await response.text();
                 if (html && html.length > 1000) {
-                    if (i > 0) {
-                        UI.log(`  ↳ Trang ${pageNumber}: Proxy ${i+1} thành công!`, 'success');
-                    }
                     return html;
                 }
             }
         } catch (e) {
-            UI.log(`  ⚠️ Proxy ${i+1} failed: ${e.message}`, 'warn');
+            // Chỉ log lỗi nếu đây là proxy cuối cùng thất bại
+            if (i === proxies.length - 1) {
+                UI.log(`  ⚠️ Tất cả proxy thất bại`, 'warn');
+            }
         }
     }
     return null;
@@ -130,68 +131,134 @@ async function fetchWattpadCOM(url) {
 
 async function processWattpadCOMContent(links) {
     const editor = document.getElementById("editor");
-    const log = document.getElementById('logBox');
-
     let output = "";
     let successCount = 0;
+    let failedLinks = [];
+    let linksWithMissingPages = [];
 
     for (let i = 0; i < links.length; i++) {
         const baseUrl = links[i].trim();
         const linkIndex = i + 1;
-        UI.log(`[WattpadCOM ${linkIndex}/${links.length}] Xử lý: ${baseUrl}`, "info");
+        UI.log(`📖 [${linkIndex}/${links.length}] Xử lý: ${baseUrl}`, "info");
 
         let fullText = "";
         let page = 1;
         let hasNext = true;
         let lastPageContent = "";
         let pageCount = 0;
+        let missingPages = [];
+        let chapterTitle = "";
+        let allPages = [];
+        let lastSuccessfulPage = 0;
 
         while (hasNext) {
             const currentUrl = page === 1 ? baseUrl : `${baseUrl}/page/${page}`;
-            UI.log(`  ↳ Tải trang ${page}...`, "info");
+            UI.log(`  📄 Đang tải trang ${page}...`, "info");
 
             const html = await fetchWattpadCOM(currentUrl);
 
             if (html) {
-                const pageText = extractWattpadCOMContent(html, page === 1);
-
-                if (pageText.length > 50 && pageText !== lastPageContent) {
-                    fullText += pageText;
-                    lastPageContent = pageText;
+                const { title, content } = extractWattpadCOMContent(html, page === 1);
+                
+                if (page === 1 && title) {
+                    chapterTitle = title;
+                }
+                
+                if (content.length > 50 && content !== lastPageContent) {
+                    // Ghi lại trang thành công
+                    allPages[page] = content;
+                    lastPageContent = content;
                     pageCount++;
-
+                    lastSuccessfulPage = page;
+                    
+                    // Kiểm tra có trang tiếp theo không
                     if (html.includes(`/page/${page + 1}`)) {
                         page++;
+                        await new Promise(r => setTimeout(r, 300));
                     } else {
                         hasNext = false;
+                        UI.log(`  🔚 Không còn trang tiếp theo, kết thúc.`, "info");
                     }
                 } else {
+                    if (content.length <= 50) {
+                        UI.log(`  ⚠️ Trang ${page}: Nội dung quá ngắn (${content.length} ký tự), kết thúc.`, "warn");
+                    }
                     hasNext = false;
                 }
             } else {
-                UI.log(`  ❌ Lỗi tải trang ${page}`, "error");
-                hasNext = false;
+                // Trang này bị lỗi, thêm vào danh sách trang thiếu
+                missingPages.push(page);
+                allPages[page] = null; // Đánh dấu trang bị thiếu
+                UI.log(`  ❌ Trang ${page}: Tải thất bại, đánh dấu là trang thiếu`, "error");
+                
+                // Vẫn tiếp tục thử trang tiếp theo nếu có thể
+                if (lastSuccessfulPage > 0 && page - lastSuccessfulPage <= 2) {
+                    page++;
+                    await new Promise(r => setTimeout(r, 300));
+                } else {
+                    hasNext = false;
+                }
             }
-            await new Promise(r => setTimeout(r, 200));
         }
 
-        if (fullText.trim()) {
-            const formattedResult = `=== LINK ${linkIndex} (${pageCount} trang) ===\n\n${fullText.trim()}\n\n========================\n\n`;
-            output += formattedResult;
+        if (pageCount > 0) {
             successCount++;
-            UI.log(`✅ Hoàn thành: ${pageCount} trang`, "success");
+            
+            // Xây dựng nội dung với tracking trang thiếu
+            let linkContent = `=== LINK ${linkIndex} ===\n`;
+            linkContent += `(${pageCount}/${pageCount + missingPages.length} trang - ${missingPages.length} trang thiếu)\n\n`;
+            
+            if (chapterTitle) {
+                linkContent += `[${chapterTitle}]\n\n`;
+            }
+            
+            // Xây dựng nội dung theo thứ tự trang
+            let maxPage = Math.max(...Object.keys(allPages).map(Number).filter(p => !isNaN(p)));
+            for (let p = 1; p <= maxPage; p++) {
+                if (allPages[p] !== undefined) {
+                    if (allPages[p] === null) {
+                        // Trang bị thiếu
+                        linkContent += `ĐANG THIẾU TRANG ${p}\n\n`;
+                    } else {
+                        // Trang thành công
+                        linkContent += `${allPages[p]}\n`;
+                    }
+                }
+            }
+            
+            linkContent += `========================\n\n`;
+            output += linkContent;
+            
+            // Ghi log chi tiết
+            let logMsg = `✅ Link ${linkIndex} HOÀN THÀNH: ${pageCount} trang thành công`;
+            if (missingPages.length > 0) {
+                logMsg += `, ${missingPages.length} trang thiếu (${missingPages.join(', ')})`;
+                linksWithMissingPages.push({ url: baseUrl, missing: missingPages });
+            }
+            UI.log(logMsg, missingPages.length > 0 ? "warn" : "success");
         } else {
+            failedLinks.push(baseUrl);
             output += `\n=== LỖI: ${baseUrl} ===\n\n`;
-            UI.log(`❌ Thất bại: không có nội dung`, "error");
+            UI.log(`❌ Link ${linkIndex} THẤT BẠI: Không có nội dung nào được tải`, "error");
         }
-
+        
         // Cập nhật progress
         document.getElementById('progressBar').style.width = `${Math.round(((i+1)/links.length)*100)}%`;
         document.getElementById('btnText').innerText = `Đang xử lý (${i+1}/${links.length})...`;
+        
+        // Delay nhẹ giữa các link
+        if (i < links.length - 1) {
+            await new Promise(r => setTimeout(r, 500));
+        }
     }
-
+    
     editor.value = output;
-    return successCount;
+    return { 
+        successCount, 
+        totalLinks: links.length, 
+        failedLinks, 
+        linksWithMissingPages 
+    };
 }
 
 /* ================= ADVANCED FIND & REPLACE ENGINE (FIXED) ================= */
@@ -501,16 +568,37 @@ async function startFetch() {
         UI.processing(true, links.length);
         document.getElementById('logBox').innerHTML = '';
         editor.value = "";
-        UI.log("🚀 Khởi động hệ thống WattpadCOM...", "info");
-
-        const successCount = await processWattpadCOMContent(links);
-
+        UI.log("🚀 KHỞI ĐỘNG HỆ THỐNG WATTPAD.COM...", "info");
+        UI.log("📊 Sử dụng 4 lớp proxy dự phòng", "info");
+        
+        const result = await processWattpadCOMContent(links);
+        
         UI.processing(false);
         updateStats();
-        UI.log(`🎯 TỔNG KẾT WATTPAD.COM: ${successCount}/${links.length} thành công`,
-            successCount === links.length ? "success" : "warn");
-        UI.toast(`Hoàn tất! ${successCount}/${links.length} link thành công`,
-            successCount === links.length ? "success" : "info");
+        
+        // Tổng kết chi tiết với danh sách link thất bại
+        let summary = `🎯 TỔNG KẾT WATTPAD.COM:\n`;
+        summary += `• Tổng link: ${result.totalLinks}\n`;
+        summary += `• Thành công: ${result.successCount}\n`;
+        summary += `• Thất bại: ${result.failedLinks.length}\n`;
+        
+        if (result.failedLinks.length > 0) {
+            summary += `\n📋 DANH SÁCH LINK THẤT BẠI:\n`;
+            result.failedLinks.forEach(link => {
+                summary += `  ❌ ${link}\n`;
+            });
+        }
+        
+        if (result.linksWithMissingPages.length > 0) {
+            summary += `\n⚠️ CÁC LINK CÓ TRANG THIẾU:\n`;
+            result.linksWithMissingPages.forEach(item => {
+                summary += `  • ${item.url} (thiếu trang: ${item.missing.join(', ')})\n`;
+            });
+        }
+        
+        UI.log(summary, result.failedLinks.length > 0 ? "warn" : "success");
+        UI.toast(`Hoàn tất! ${result.successCount}/${result.totalLinks} link thành công`, 
+                result.successCount === result.totalLinks ? "success" : "info");
         return;
     }
 
