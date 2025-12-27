@@ -54,7 +54,6 @@ const UI = {
 };
 
 function onEditorInput() {
-    // Đánh dấu editor đã bị thay đổi, cần scan lại khi tìm kiếm
     searchState.isDirty = true;
     updateStats();
 }
@@ -83,7 +82,6 @@ function extractWattpadCOMContent(html, isFirstPage) {
     let title = "";
     let content = "";
 
-    // 1. Lấy tiêu đề chương (Nếu là trang 1)
     if (isFirstPage) {
         const titleTag = doc.querySelector('h1.h2');
         if (titleTag) {
@@ -91,7 +89,6 @@ function extractWattpadCOMContent(html, isFirstPage) {
         }
     }
 
-    // 2. Lấy nội dung văn bản sạch
     const paragraphs = doc.querySelectorAll('p[data-p-id]');
     paragraphs.forEach(p => {
         let txt = p.innerText.trim();
@@ -120,7 +117,6 @@ async function fetchWattpadCOM(url) {
                 }
             }
         } catch (e) {
-            // Chỉ log lỗi nếu đây là proxy cuối cùng thất bại
             if (i === proxies.length - 1) {
                 UI.log(`  ⚠️ Tất cả proxy thất bại`, 'warn');
             }
@@ -165,13 +161,11 @@ async function processWattpadCOMContent(links) {
                 }
                 
                 if (content.length > 50 && content !== lastPageContent) {
-                    // Ghi lại trang thành công
                     allPages[page] = content;
                     lastPageContent = content;
                     pageCount++;
                     lastSuccessfulPage = page;
                     
-                    // Kiểm tra có trang tiếp theo không
                     if (html.includes(`/page/${page + 1}`)) {
                         page++;
                         await new Promise(r => setTimeout(r, 300));
@@ -186,12 +180,10 @@ async function processWattpadCOMContent(links) {
                     hasNext = false;
                 }
             } else {
-                // Trang này bị lỗi, thêm vào danh sách trang thiếu
                 missingPages.push(page);
-                allPages[page] = null; // Đánh dấu trang bị thiếu
+                allPages[page] = null;
                 UI.log(`  ❌ Trang ${page}: Tải thất bại, đánh dấu là trang thiếu`, "error");
                 
-                // Vẫn tiếp tục thử trang tiếp theo nếu có thể
                 if (lastSuccessfulPage > 0 && page - lastSuccessfulPage <= 2) {
                     page++;
                     await new Promise(r => setTimeout(r, 300));
@@ -204,7 +196,6 @@ async function processWattpadCOMContent(links) {
         if (pageCount > 0) {
             successCount++;
             
-            // Xây dựng nội dung với tracking trang thiếu
             let linkContent = `=== LINK ${linkIndex} ===\n`;
             linkContent += `(${pageCount}/${pageCount + missingPages.length} trang - ${missingPages.length} trang thiếu)\n\n`;
             
@@ -212,15 +203,12 @@ async function processWattpadCOMContent(links) {
                 linkContent += `[${chapterTitle}]\n\n`;
             }
             
-            // Xây dựng nội dung theo thứ tự trang
             let maxPage = Math.max(...Object.keys(allPages).map(Number).filter(p => !isNaN(p)));
             for (let p = 1; p <= maxPage; p++) {
                 if (allPages[p] !== undefined) {
                     if (allPages[p] === null) {
-                        // Trang bị thiếu
                         linkContent += `ĐANG THIẾU TRANG ${p}\n\n`;
                     } else {
-                        // Trang thành công
                         linkContent += `${allPages[p]}\n`;
                     }
                 }
@@ -229,7 +217,6 @@ async function processWattpadCOMContent(links) {
             linkContent += `========================\n\n`;
             output += linkContent;
             
-            // Ghi log chi tiết
             let logMsg = `✅ Link ${linkIndex} HOÀN THÀNH: ${pageCount} trang thành công`;
             if (missingPages.length > 0) {
                 logMsg += `, ${missingPages.length} trang thiếu (${missingPages.join(', ')})`;
@@ -242,11 +229,9 @@ async function processWattpadCOMContent(links) {
             UI.log(`❌ Link ${linkIndex} THẤT BẠI: Không có nội dung nào được tải`, "error");
         }
         
-        // Cập nhật progress
         document.getElementById('progressBar').style.width = `${Math.round(((i+1)/links.length)*100)}%`;
         document.getElementById('btnText').innerText = `Đang xử lý (${i+1}/${links.length})...`;
         
-        // Delay nhẹ giữa các link
         if (i < links.length - 1) {
             await new Promise(r => setTimeout(r, 500));
         }
@@ -274,7 +259,6 @@ function getSearchRegex() {
     const useRegex = document.getElementById('useRegex').checked;
     const caseSensitive = document.getElementById('caseSensitive').checked;
 
-    // Flag: global (g), dotAll (s), ignoreCase (i)
     let flags = 'gs';
     if (!caseSensitive) flags += 'i';
 
@@ -315,13 +299,12 @@ function initSearch() {
     if (!regex) return UI.toast("Nhập từ khóa tìm kiếm!", "warn");
 
     searchState.matches = performScan();
-    searchState.isDirty = false; // Đã scan mới nhất
+    searchState.isDirty = false;
 
     const count = searchState.matches.length;
     document.getElementById('navControls').classList.add('active');
 
     if (count > 0) {
-        // Tìm match gần con trỏ hiện tại nhất để bắt đầu
         const currentPos = editor.selectionStart;
         let bestIndex = 0;
         for (let i = 0; i < count; i++) {
@@ -347,16 +330,13 @@ function updateNavUI() {
     document.getElementById('navCounter').innerText = `${current} / ${total}`;
 }
 
-// --- PIXEL PERFECT SCROLL LOGIC ---
 function scrollToMatch(start, end) {
     const editor = document.getElementById('editor');
     const text = editor.value;
 
-    // Tạo một div "gương" (mirror) để đo vị trí chính xác
     const mirror = document.createElement('div');
     const style = window.getComputedStyle(editor);
 
-    // Copy toàn bộ style quan trọng từ textarea sang mirror div
     const props = [
         'font-family', 'font-size', 'font-weight', 'line-height',
         'padding', 'border', 'width', 'white-space', 'word-wrap', 'word-break',
@@ -364,18 +344,15 @@ function scrollToMatch(start, end) {
     ];
     props.forEach(p => mirror.style[p] = style[p]);
 
-    // Mirror div phải ẩn nhưng vẫn render để đo được
     mirror.style.position = 'absolute';
     mirror.style.visibility = 'hidden';
     mirror.style.top = '0';
     mirror.style.left = '0';
-    mirror.style.overflow = 'hidden'; // Không hiện scrollbar
+    mirror.style.overflow = 'hidden';
 
-    // Nội dung trước match
     const beforeText = text.substring(0, start);
     const matchText = text.substring(start, end);
 
-    // Tạo span đánh dấu
     mirror.textContent = beforeText;
     const span = document.createElement('span');
     span.textContent = matchText;
@@ -383,11 +360,9 @@ function scrollToMatch(start, end) {
 
     document.body.appendChild(mirror);
 
-    // Lấy tọa độ chính xác của span
     const offsetTop = span.offsetTop;
     const editorHeight = editor.clientHeight;
 
-    // Cuộn textarea đến vị trí đó (căn giữa)
     const scrollTarget = offsetTop - (editorHeight / 2) + parseInt(style.paddingTop);
 
     editor.scrollTo({
@@ -395,7 +370,6 @@ function scrollToMatch(start, end) {
         behavior: 'smooth'
     });
 
-    // Dọn dẹp
     document.body.removeChild(mirror);
 }
 
@@ -406,18 +380,14 @@ function highlightMatch() {
     const editor = document.getElementById('editor');
     const match = searchState.matches[searchState.currentIndex];
 
-    // 1. Select text
     editor.focus();
     editor.setSelectionRange(match.start, match.end);
 
-    // 2. Custom Scroll logic (Fix lỗi cuộn thiếu)
     scrollToMatch(match.start, match.end);
 }
 
 function navMatch(dir) {
-    // --- LOGIC XỬ LÝ KHI NGƯỜI DÙNG TỰ SỬA TEXT (Fix lỗi nhảy lung tung) ---
     if (searchState.isDirty) {
-        // Nếu text đã bị sửa, scan lại âm thầm để lấy vị trí mới đúng nhất
         const currentPos = document.getElementById('editor').selectionStart;
         searchState.matches = performScan();
         searchState.isDirty = false;
@@ -427,14 +397,10 @@ function navMatch(dir) {
             return;
         }
 
-        // Tìm match tiếp theo dựa trên vị trí con trỏ hiện tại
-        // Nếu bấm Next (1): tìm match đầu tiên SAU con trỏ
-        // Nếu bấm Prev (-1): tìm match đầu tiên TRƯỚC con trỏ
         if (dir === 1) {
             searchState.currentIndex = searchState.matches.findIndex(m => m.start >= currentPos);
-            if (searchState.currentIndex === -1) searchState.currentIndex = 0; // Wrap around
+            if (searchState.currentIndex === -1) searchState.currentIndex = 0;
         } else {
-            // Tìm match gần nhất phía sau
             for (let i = searchState.matches.length - 1; i >= 0; i--) {
                 if (searchState.matches[i].start < currentPos) {
                     searchState.currentIndex = i;
@@ -444,7 +410,6 @@ function navMatch(dir) {
             if (searchState.currentIndex === -1) searchState.currentIndex = searchState.matches.length - 1;
         }
     } else {
-        // Logic điều hướng bình thường nếu không sửa gì
         if (searchState.matches.length === 0) return;
         searchState.currentIndex += dir;
         if (searchState.currentIndex >= searchState.matches.length) searchState.currentIndex = 0;
@@ -456,7 +421,6 @@ function navMatch(dir) {
 }
 
 function replaceOne() {
-    // Nếu dirty, phải scan lại trước khi replace để đảm bảo đúng vị trí
     if (searchState.isDirty || searchState.matches.length === 0) {
         initSearch();
         if (searchState.matches.length === 0) return UI.toast("Không tìm thấy gì để thay", "warn");
@@ -468,14 +432,11 @@ function replaceOne() {
     const replaceStr = document.getElementById('replaceStr').value;
     const match = searchState.matches[searchState.currentIndex];
 
-    // Thay thế
     editor.setRangeText(replaceStr, match.start, match.end, 'select');
     UI.toast("Đã thay thế", "success");
 
-    // Sau khi thay thế, độ dài văn bản thay đổi -> đánh dấu dirty để lần bấm Next sau sẽ tự re-scan
     searchState.isDirty = true;
 
-    // Cập nhật thống kê
     updateStats();
 }
 
@@ -499,7 +460,7 @@ function replaceAll() {
     }
 }
 
-/* ================= CORE FETCH LOGIC (UNCHANGED) ================= */
+/* ================= CORE FETCH LOGIC (MODIFIED) ================= */
 async function stableFetch(url) {
     const fetchWithTimeout = async (target, timeout = 6000) => {
         const controller = new AbortController();
@@ -536,17 +497,27 @@ async function stableFetch(url) {
     return null;
 }
 
+// HÀM QUAN TRỌNG: ĐÃ SỬA ĐỂ LOẠI BỎ TEXT ẨN
 function getSmartText(node) {
     if (!node) return '';
     if (node.nodeType === 3) return node.textContent;
     if (node.nodeType === 1) {
-        const style = window.getComputedStyle(node);
-        if (style.display === 'none' || ['SCRIPT', 'STYLE'].includes(node.tagName)) return '';
+        // LOẠI BỎ CÁC PHẦN TỬ ẨN VỚI POSITION: ABSOLUTE VÀ LEFT/TOP: -9999PX
+        if (node.hasAttribute('style')) {
+            const style = node.getAttribute('style').toLowerCase();
+            if (style.includes('position: absolute') && 
+                (style.includes('left: -9999') || style.includes('top: -9999'))) {
+                return ''; // KHÔNG TRẢ VỀ GÌ CẢ CHO PHẦN TỬ ẨN
+            }
+        }
+        
+        const computedStyle = window.getComputedStyle(node);
+        if (computedStyle.display === 'none' || ['SCRIPT', 'STYLE'].includes(node.tagName)) return '';
         if (node.tagName === 'BR') return '\n\n';
         let content = '';
         node.childNodes.forEach(c => {
             let t = getSmartText(c);
-            if (['P', 'DIV', 'H1', 'LI'].includes(c.tagName)) t = '\n\n' + t + '\n\n';
+            if (['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'LI'].includes(c.tagName)) t = '\n\n' + t + '\n\n';
             content += t;
         });
         return content;
@@ -563,7 +534,7 @@ async function startFetch() {
     const selector = document.getElementById("customSelectors").value.trim();
     const editor = document.getElementById("editor");
 
-    // Nếu là WattpadCOM, dùng logic đặc biệt
+    // Nếu là WattpadCOM
     if (type === 'wattpadcom') {
         UI.processing(true, links.length);
         document.getElementById('logBox').innerHTML = '';
@@ -576,7 +547,6 @@ async function startFetch() {
         UI.processing(false);
         updateStats();
         
-        // Tổng kết chi tiết với danh sách link thất bại
         let summary = `🎯 TỔNG KẾT WATTPAD.COM:\n`;
         summary += `• Tổng link: ${result.totalLinks}\n`;
         summary += `• Thành công: ${result.successCount}\n`;
@@ -628,6 +598,7 @@ async function startFetch() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
+        // Xử lý hiddenRule (nếu có)
         if (hiddenRule) {
             try {
                 doc.querySelectorAll("*").forEach(el => {
@@ -686,16 +657,13 @@ function formatWattpad() {
     const lines = oldContent.split('\n').filter(line => {
         const t = line.trim();
 
-        // 1. Loại bỏ các dòng '=== LINK'
         if (t.startsWith('=== LINK')) return false;
 
-        // 2. Các dòng chỉ chứa các ký tự rác (+, *, =)
         if (/^\++$/.test(t) || /^\*+$/.test(t) || /^\=+$/.test(t)) return false;
 
-        // 3. Các dòng chỉ chứa một số 1-1000: /^(?:[1-9]|[1-9]\d|[1-9]\d{2}|1000)$/
         if (/^(?:[1-9]|[1-9]\d|[1-9]\d{2}|1000)$/.test(t)) return false;
 
-        return true; // Giữ lại các dòng còn lại
+        return true;
     });
 
     const newContent = lines.join('\n');
