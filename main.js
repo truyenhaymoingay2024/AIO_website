@@ -668,7 +668,9 @@ function formatWattpad() {
 
     const newContent = lines.join('\n');
     const removedLines = oldContent.split('\n').length - lines.length;
-    editor.value = newContent;
+    const regex = /[ \u00A0]{2,}/g;
+    const resultContent = newContent.replace(regex, '\n\n');
+    editor.value = resultContent;
     UI.toast(`Đã xóa ${removedLines} dòng rác (bao gồm '=== LINK' và dòng đánh số)`, "success");
     updateStats();
 }
