@@ -681,7 +681,7 @@ function injectPromo() {
     if (!editor.value) return UI.toast("Chưa có nội dung trong Editor!", "warn");
     if (!keywordsInput.trim()) return UI.toast("Vui lòng nhập từ khóa vào Box Hiệu Chỉnh!", "warn");
     const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
-    const promoText = "Nếu bạn yêu thích nội dung này thì bạn có thể nhấn like và đăng ký kênh để ủng hộ mình nha. Mỗi lượt tương tác của bạn đều là động lực rất lớn để mình tiếp tục làm video đó. Cảm ơn bạn nhiều lắm.\n";
+    const promoText = "Nếu bạn yêu thích nội dung này thì bạn có thể nhấn like và đăng ký kênh để ủng hộ mình nha. Mỗi lượt tương tác của bạn đều là động lực rất lớn để mình tiếp tục làm video đó. Cảm ơn bạn nhiều lắm.\n\n";
     if (keywords.length === 0) return;
     const lines = editor.value.split('\n');
     let newLines = [];
