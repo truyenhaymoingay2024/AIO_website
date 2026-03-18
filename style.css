@@ -325,7 +325,7 @@ textarea {
 .log-container {
 	display: flex;
 	flex-direction: column;
-	height: 315px;
+	height: 300px;
 	flex-shrink: 0;
 	border-top: 1px solid var(--border-base);
 	background: #0f0f11;
