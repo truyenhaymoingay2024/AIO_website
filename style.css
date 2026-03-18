@@ -124,7 +124,7 @@ body {
 	padding: 14px 0;
 	background: transparent;
 	border: none;
-	color: var(--text-muted);
+	color: var(--text-muteNd);
 	font-size: 0.85rem;
 	font-weight: 500;
 	cursor: pointer;
@@ -325,7 +325,7 @@ textarea {
 .log-container {
 	display: flex;
 	flex-direction: column;
-	height: 180px;
+	height: 360px;
 	flex-shrink: 0;
 	border-top: 1px solid var(--border-base);
 	background: #0f0f11;

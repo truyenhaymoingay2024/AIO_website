@@ -675,38 +675,13 @@ function formatWattpad() {
     updateStats();
 }
 
-function injectPromo() {
+function smartJoin() {
     const editor = document.getElementById("editor");
-    const keywordsInput = document.getElementById("promoKeywords").value;
-    if (!editor.value) return UI.toast("Chưa có nội dung trong Editor!", "warn");
-    if (!keywordsInput.trim()) return UI.toast("Vui lòng nhập từ khóa vào Box Hiệu Chỉnh!", "warn");
-    const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k.length > 0);
-    const promoText = "Nếu bạn yêu thích nội dung này thì bạn có thể nhấn like và đăng ký kênh để ủng hộ mình nha. Mỗi lượt tương tác của bạn đều là động lực rất lớn để mình tiếp tục làm video đó. Cảm ơn bạn nhiều lắm.\n\n";
-    if (keywords.length === 0) return;
-    const lines = editor.value.split('\n');
-    let newLines = [];
-    let injectCount = 0;
-    lines.forEach(line => {
-        const lowerLine = line.toLowerCase();
-        const match = keywords.some(key => lowerLine.includes(key));
-        if (match) {
-            newLines.push(promoText);
-            injectCount++;
-        }
-        newLines.push(line);
-    });
-    editor.value = newLines.join('\n');
-    UI.toast(`Đã chèn promo vào ${injectCount} vị trí`, "success");
-    updateStats();
-}
-
-function formatTYT() {
-    const ed = document.getElementById("editor");
-    if (!ed.value) return;
-    const oldLen = ed.value.length;
-    ed.value = ed.value.replace(/[“”"()[\]【】]/g, '');
-    UI.toast(`Đã xóa ${oldLen - ed.value.length} ký tự đặc biệt`, "success");
-    updateStats();
+    if (!editor.value) return UI.toast("Không có nội dung!", "warn");
+    let blocks = editor.value.replace(/\r\n/g, '\n').split(/\n{2,}/);
+    let joined = blocks.map(b => b.split('\n').map(l => l.trim()).filter(l => l.length > 0).join(' '));
+    editor.value = joined.join('\n\n');
+    UI.toast("Đã nối thông minh", "success"); updateStats();
 }
 
 function formatVanAn() {
