@@ -85,13 +85,18 @@ function extractWattpadCOMContent(html, isFirstPage) {
     if (isFirstPage) {
         const titleTag = doc.querySelector('h1.h2');
         if (titleTag) {
-            title = titleTag.innerText.trim().toUpperCase();
+            // Dùng textContent an toàn hơn với DOMParser
+            title = titleTag.textContent.trim().toUpperCase();
         }
     }
 
     const paragraphs = doc.querySelectorAll('p[data-p-id]');
     paragraphs.forEach(p => {
-        let txt = p.innerText.trim();
+        // FIX LỖI NỐI CHỮ: Đổi tất cả thẻ <br> thành ký tự xuống dòng \n
+        p.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+        
+        // Lấy text content sau khi <br> đã được thay thế
+        let txt = p.textContent.trim();
         if (txt) content += txt + "\n\n";
     });
 
