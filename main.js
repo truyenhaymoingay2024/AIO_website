@@ -503,9 +503,13 @@ async function stableFetch(url) {
 }
 
 // HÀM QUAN TRỌNG: ĐÃ SỬA ĐỂ LOẠI BỎ TEXT ẨN CẢ THÔNG THƯỜNG LẪN WATERMARK (Z-INDEX: -1000)
+// VÀ FIX LỖI KÝ TỰ &nbsp; (\u00A0) GÂY XUỐNG DÒNG SAI
 function getSmartText(node) {
     if (!node) return '';
-    if (node.nodeType === 3) return node.textContent;
+    
+    // FIX TẠI ĐÂY: Chuyển toàn bộ &nbsp; (\u00A0) thành dấu cách bình thường ngay khi lấy text
+    if (node.nodeType === 3) return node.textContent.replace(/\u00A0/g, ' ');
+    
     if (node.nodeType === 1) {
         // LOẠI BỎ CÁC PHẦN TỬ ẨN VỚI INLINE STYLE
         if (node.hasAttribute('style')) {
