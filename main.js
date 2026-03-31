@@ -59,8 +59,29 @@ function onEditorInput() {
 }
 
 function updateStats() {
-    const len = document.getElementById('editor').value.length;
-    document.getElementById('charCount').innerText = `${len.toLocaleString()} chars`;
+    const text = document.getElementById('editor').value;
+    const charCount = text.length;
+    
+    // Đếm số từ, số dòng
+    const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    const lineCount = text === '' ? 0 : text.split(/\n/).length;
+
+    // Tính thời gian TTS (Tốc độ 1.35x = ~255 từ / phút)
+    const WPM = 255; 
+    const totalRawMinutes = wordCount / WPM;
+    const hours = Math.floor(totalRawMinutes / 60);
+    const minutes = Math.floor(totalRawMinutes % 60);
+    const seconds = Math.round((totalRawMinutes - Math.floor(totalRawMinutes)) * 60);
+
+    let timeStr = "";
+    if (hours > 0) {
+        timeStr = `${hours}h ${minutes}p ${seconds}s`;
+    } else {
+        timeStr = `${minutes}p ${seconds}s`;
+    }
+
+    document.getElementById('charCount').innerHTML = 
+        `<span style="color:var(--text-muted)">${lineCount.toLocaleString()} dòng | ${wordCount.toLocaleString()} từ | ${charCount.toLocaleString()} ký tự | <span style="color:var(--primary)">🎧 ~${timeStr}</span></span>`;
 }
 
 function toggleConfig() {
@@ -75,6 +96,111 @@ function switchTab(tabName) {
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
+/* ================= PERSONAL PRESET (BỘ LỌC CÁ NHÂN) ================= */
+let appPresets = JSON.parse(localStorage.getItem('aio_presets')) || [];
+
+function openPresetModal() {
+    document.getElementById('presetModal').classList.add('show');
+    renderPresets();
+}
+
+function closePresetModal() {
+    document.getElementById('presetModal').classList.remove('show');
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
+}
+
+function renderPresets() {
+    const list = document.getElementById('presetList');
+    if (appPresets.length === 0) {
+        list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding: 30px 0;">Bạn chưa có quy tắc nào trong bộ lọc.</div>';
+        return;
+    }
+    list.innerHTML = appPresets.map((p, i) => `
+        <div class="preset-item">
+            <div class="preset-item-info">
+                ${p.isRegex ? '<span class="tag-regex">REGEX</span>' : ''}
+                <span style="color:var(--danger)">${escapeHTML(p.find)}</span>
+                <span style="color:var(--text-muted); margin: 0 8px;">➔</span>
+                <span style="color:var(--success)">${escapeHTML(p.replace)}</span>
+            </div>
+            <button class="btn-del" onclick="deletePreset(${i})">Xóa</button>
+        </div>
+    `).join('');
+}
+
+function addPreset() {
+    const findInput = document.getElementById('presetFind');
+    const replaceInput = document.getElementById('presetReplace');
+    const regexInput = document.getElementById('presetRegex');
+
+    const findVal = findInput.value;
+    if (!findVal) return UI.toast("Vui lòng nhập từ khóa cần tìm", "warn");
+
+    if (regexInput.checked) {
+        try { new RegExp(findVal); } 
+        catch (e) { return UI.toast("Biểu thức Regex không hợp lệ!", "error"); }
+    }
+
+    appPresets.push({
+        find: findVal,
+        replace: replaceInput.value,
+        isRegex: regexInput.checked
+    });
+
+    localStorage.setItem('aio_presets', JSON.stringify(appPresets));
+    findInput.value = '';
+    replaceInput.value = '';
+    renderPresets();
+    UI.toast("Đã thêm quy tắc lọc", "success");
+}
+
+function deletePreset(index) {
+    appPresets.splice(index, 1);
+    localStorage.setItem('aio_presets', JSON.stringify(appPresets));
+    renderPresets();
+}
+
+function runAllPresets() {
+    if (appPresets.length === 0) return UI.toast("Không có quy tắc nào để chạy!", "warn");
+
+    const editor = document.getElementById('editor');
+    let text = editor.value;
+    if (!text) return UI.toast("Không có nội dung để lọc!", "warn");
+
+    let totalReplaced = 0;
+
+    appPresets.forEach(rule => {
+        let regex;
+        if (rule.isRegex) {
+            regex = new RegExp(rule.find, 'gs'); 
+        } else {
+            regex = new RegExp(rule.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        }
+
+        const matches = text.match(regex);
+        if (matches) {
+            totalReplaced += matches.length;
+            text = text.replace(regex, rule.replace);
+        }
+    });
+
+    if (totalReplaced > 0) {
+        editor.value = text;
+        updateStats();
+        searchState.isDirty = true;
+        UI.toast(`Đã thay thế thành công ${totalReplaced} vị trí!`, "success");
+        UI.log(`[Bộ lọc cá nhân] Hoàn tất thay thế ${totalReplaced} cụm từ.`, "success");
+    } else {
+        UI.toast("Không tìm thấy cụm từ nào khớp với bộ lọc.", "info");
+    }
+    closePresetModal();
+}
+
 /* ================= WATTPAD.COM SPECIFIC FUNCTIONS ================= */
 function extractWattpadCOMContent(html, isFirstPage) {
     const parser = new DOMParser();
@@ -85,17 +211,13 @@ function extractWattpadCOMContent(html, isFirstPage) {
     if (isFirstPage) {
         const titleTag = doc.querySelector('h1.h2');
         if (titleTag) {
-            // Dùng textContent an toàn hơn với DOMParser
             title = titleTag.textContent.trim().toUpperCase();
         }
     }
 
     const paragraphs = doc.querySelectorAll('p[data-p-id]');
     paragraphs.forEach(p => {
-        // FIX LỖI NỐI CHỮ: Đổi tất cả thẻ <br> thành ký tự xuống dòng \n
         p.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-        
-        // Lấy text content sau khi <br> đã được thay thế
         let txt = p.textContent.trim();
         if (txt) content += txt + "\n\n";
     });
@@ -251,7 +373,7 @@ async function processWattpadCOMContent(links) {
     };
 }
 
-/* ================= ADVANCED FIND & REPLACE ENGINE (FIXED) ================= */
+/* ================= ADVANCED FIND & REPLACE ENGINE ================= */
 let searchState = {
     matches: [],
     currentIndex: -1,
@@ -441,7 +563,6 @@ function replaceOne() {
     UI.toast("Đã thay thế", "success");
 
     searchState.isDirty = true;
-
     updateStats();
 }
 
@@ -465,7 +586,7 @@ function replaceAll() {
     }
 }
 
-/* ================= CORE FETCH LOGIC (MODIFIED) ================= */
+/* ================= CORE FETCH LOGIC ================= */
 async function stableFetch(url) {
     const fetchWithTimeout = async (target, timeout = 6000) => {
         const controller = new AbortController();
@@ -502,33 +623,21 @@ async function stableFetch(url) {
     return null;
 }
 
-// HÀM QUAN TRỌNG: ĐÃ SỬA ĐỂ LOẠI BỎ TEXT ẨN CẢ THÔNG THƯỜNG LẪN WATERMARK (Z-INDEX: -1000)
-// VÀ FIX LỖI KÝ TỰ &nbsp; (\u00A0) GÂY XUỐNG DÒNG SAI
 function getSmartText(node) {
     if (!node) return '';
-    
-    // FIX TẠI ĐÂY: Chuyển toàn bộ &nbsp; (\u00A0) thành dấu cách bình thường ngay khi lấy text
-    if (node.nodeType === 3) return node.textContent.replace(/\u00A0/g, ' ');
-    
+    if (node.nodeType === 3) return node.textContent;
     if (node.nodeType === 1) {
-        // LOẠI BỎ CÁC PHẦN TỬ ẨN VỚI INLINE STYLE
         if (node.hasAttribute('style')) {
-            // Chuẩn hóa chuỗi: Chuyển về chữ thường và xóa sạch khoảng trắng để so sánh không bị trượt
             const style = node.getAttribute('style').toLowerCase().replace(/\s+/g, '');
-            
-            // Kiểu ẩn 1: Bay ra khỏi màn hình (left/top -9999)
             const isHiddenOffscreen = style.includes('position:absolute') && 
                 (style.includes('left:-9999') || style.includes('top:-9999'));
-                
-            // Kiểu ẩn 2: Nằm dưới nền (z-index: -1000) - Phổ biến trong thẻ <em> rác
             const isHiddenZIndex = style.includes('position:absolute') && style.includes('z-index:-1000');
 
             if (isHiddenOffscreen || isHiddenZIndex) {
-                return ''; // KHÔNG TRẢ VỀ GÌ CẢ CHO PHẦN TỬ ẨN
+                return ''; 
             }
         }
         
-        // Try-catch bọc computedStyle vì DOMParser đôi khi lỗi window context
         try {
             const computedStyle = window.getComputedStyle(node);
             if (computedStyle && computedStyle.display === 'none') return '';
@@ -557,7 +666,6 @@ async function startFetch() {
     const selector = document.getElementById("customSelectors").value.trim();
     const editor = document.getElementById("editor");
 
-    // Nếu là WattpadCOM
     if (type === 'wattpadcom') {
         UI.processing(true, links.length);
         document.getElementById('logBox').innerHTML = '';
@@ -621,7 +729,6 @@ async function startFetch() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
 
-        // Xử lý hiddenRule (nếu có)
         if (hiddenRule) {
             try {
                 doc.querySelectorAll("*").forEach(el => {
@@ -634,9 +741,6 @@ async function startFetch() {
         if (type === 'custom' && selector) {
             const nodes = doc.querySelectorAll(selector);
             nodes.forEach(n => text += getSmartText(n) + "\n\n");
-        } else if (type === 'mongtruyen') {
-            text = (doc.querySelector('.mdv-san-pham-detail-chuong-title-text')?.textContent || '') + "\n\n" +
-                getSmartText(doc.querySelector('#noi_dung_truyen'));
         } else if (type === 'truyenfull') {
             text = (doc.querySelector('.chapter-title')?.textContent || '') + "\n\n" +
                 getSmartText(doc.querySelector('#chapter-c'));
@@ -679,21 +783,15 @@ function formatWattpad() {
 
     const lines = oldContent.split('\n').filter(line => {
         const t = line.trim();
-
         if (t.startsWith('=== LINK')) return false;
-
         if (/^\++$/.test(t) || /^\*+$/.test(t) || /^\=+$/.test(t)) return false;
-
         if (/^(?:[1-9]|[1-9]\d|[1-9]\d{2}|1000)$/.test(t)) return false;
-
         return true;
     });
 
     const newContent = lines.join('\n');
     const removedLines = oldContent.split('\n').length - lines.length;
-    const regex = /[ \u00A0]{2,}/g;
-    const resultContent = newContent.replace(regex, '\n\n');
-    editor.value = resultContent;
+    editor.value = newContent;
     UI.toast(`Đã xóa ${removedLines} dòng rác (bao gồm '=== LINK' và dòng đánh số)`, "success");
     updateStats();
 }
