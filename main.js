@@ -502,23 +502,37 @@ async function stableFetch(url) {
     return null;
 }
 
-// HÀM QUAN TRỌNG: ĐÃ SỬA ĐỂ LOẠI BỎ TEXT ẨN
+// HÀM QUAN TRỌNG: ĐÃ SỬA ĐỂ LOẠI BỎ TEXT ẨN CẢ THÔNG THƯỜNG LẪN WATERMARK (Z-INDEX: -1000)
 function getSmartText(node) {
     if (!node) return '';
     if (node.nodeType === 3) return node.textContent;
     if (node.nodeType === 1) {
-        // LOẠI BỎ CÁC PHẦN TỬ ẨN VỚI POSITION: ABSOLUTE VÀ LEFT/TOP: -9999PX
+        // LOẠI BỎ CÁC PHẦN TỬ ẨN VỚI INLINE STYLE
         if (node.hasAttribute('style')) {
-            const style = node.getAttribute('style').toLowerCase();
-            if (style.includes('position: absolute') && 
-                (style.includes('left: -9999') || style.includes('top: -9999'))) {
+            // Chuẩn hóa chuỗi: Chuyển về chữ thường và xóa sạch khoảng trắng để so sánh không bị trượt
+            const style = node.getAttribute('style').toLowerCase().replace(/\s+/g, '');
+            
+            // Kiểu ẩn 1: Bay ra khỏi màn hình (left/top -9999)
+            const isHiddenOffscreen = style.includes('position:absolute') && 
+                (style.includes('left:-9999') || style.includes('top:-9999'));
+                
+            // Kiểu ẩn 2: Nằm dưới nền (z-index: -1000) - Phổ biến trong thẻ <em> rác
+            const isHiddenZIndex = style.includes('position:absolute') && style.includes('z-index:-1000');
+
+            if (isHiddenOffscreen || isHiddenZIndex) {
                 return ''; // KHÔNG TRẢ VỀ GÌ CẢ CHO PHẦN TỬ ẨN
             }
         }
         
-        const computedStyle = window.getComputedStyle(node);
-        if (computedStyle.display === 'none' || ['SCRIPT', 'STYLE'].includes(node.tagName)) return '';
+        // Try-catch bọc computedStyle vì DOMParser đôi khi lỗi window context
+        try {
+            const computedStyle = window.getComputedStyle(node);
+            if (computedStyle && computedStyle.display === 'none') return '';
+        } catch(e) {}
+        
+        if (['SCRIPT', 'STYLE'].includes(node.tagName)) return '';
         if (node.tagName === 'BR') return '\n\n';
+        
         let content = '';
         node.childNodes.forEach(c => {
             let t = getSmartText(c);
@@ -629,7 +643,7 @@ async function startFetch() {
             text = getSmartText(doc.body);
         }
 
-        text = text.replace(/\n{3,}/g, '\n\n').trim();
+        text = text.replace(/\u00A0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
         output += `=== LINK ${i+1} ===\n${text}\n\n========================\n\n`;
         successCount++;
     }
