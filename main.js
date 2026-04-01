@@ -91,10 +91,92 @@ function toggleConfig() {
 
 function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
+
+/* ================= DRAG & DROP IMPORT ================= */
+const editorWrapper = document.getElementById('editorWrapper');
+const editorEle = document.getElementById('editor');
+
+editorWrapper.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    editorWrapper.classList.add('drag-over');
+});
+
+editorWrapper.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    editorWrapper.classList.remove('drag-over');
+});
+
+editorWrapper.addEventListener('drop', (e) => {
+    e.preventDefault();
+    editorWrapper.classList.remove('drag-over');
+    
+    if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        
+        // Validate MIME type hoac duoi .txt
+        if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
+            return UI.toast("Chỉ hỗ trợ file định dạng Text (.txt)", "error");
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            editorEle.value = event.target.result;
+            updateStats();
+            searchState.isDirty = true;
+            UI.toast(`Đã nhập dữ liệu từ file: ${file.name}`, "success");
+            UI.log(`Nhập file thành công: ${file.name} (${file.size} bytes)`, "success");
+        };
+        reader.onerror = () => UI.toast("Lỗi đọc file!", "error");
+        reader.readAsText(file);
+    }
+});
+
+
+/* ================= KEYBOARD SHORTCUTS ================= */
+document.addEventListener('keydown', (e) => {
+    const isCtrl = e.ctrlKey || e.metaKey;
+
+    // Ctrl + S: Tải xuống file
+    if (isCtrl && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        downloadText();
+    }
+
+    // Ctrl + F: Chuyển sang tìm kiếm
+    if (isCtrl && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        switchTab('search');
+        document.getElementById('findStr').focus();
+    }
+
+    // Ctrl + Enter: Hành động tùy Tab
+    if (isCtrl && e.key === 'Enter') {
+        e.preventDefault();
+        if (document.getElementById('tab-fetch').classList.contains('active')) {
+            startFetch();
+        } else if (document.getElementById('tab-search').classList.contains('active')) {
+            replaceAll();
+        }
+    }
+});
+
+// Sự kiện riêng cho ô Find: Enter / Shift+Enter
+document.getElementById('findStr').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault(); // Tránh tạo dòng mới trong textarea
+        
+        if (searchState.isDirty || searchState.matches.length === 0) {
+            initSearch();
+        } else {
+            navMatch(e.shiftKey ? -1 : 1);
+        }
+    }
+});
+
 
 /* ================= PERSONAL PRESET (BỘ LỌC CÁ NHÂN) ================= */
 let appPresets = JSON.parse(localStorage.getItem('aio_presets')) || [];

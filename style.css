@@ -413,6 +413,7 @@ textarea {
 	border-color: rgba(239, 68, 68, 0.2);
 }
 
+/* DRAG AND DROP STYLING */
 .editor-wrapper {
 	flex: 1;
 	border: 1px solid var(--border-base);
@@ -423,6 +424,13 @@ textarea {
 	flex-direction: column;
 	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 	position: relative;
+    transition: all 0.3s var(--ease-out);
+}
+
+.editor-wrapper.drag-over {
+    border-color: var(--primary);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
 .editor-header {
