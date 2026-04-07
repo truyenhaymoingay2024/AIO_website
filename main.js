@@ -196,6 +196,69 @@ function escapeHTML(str) {
     }[tag]));
 }
 
+/* ================= AUDIO SCRIPT FORMATTER ================= */
+function insertAudioScripts() {
+    const editor = document.getElementById("editor");
+    let text = editor.value;
+    
+    if (!text.trim()) return UI.toast("Không có nội dung để chèn!", "warn");
+
+    // Các đoạn text cấu hình
+    const introText = "Chào mừng bạn đã quay trở lại với Tư Ngữ Audio. Hôm nay, chúng ta sẽ cùng nhau đến với . Và nếu bạn yêu thích những bộ truyện trên kênh, thì đừng quên nhấn like và đăng ký kênh để ủng hộ mình nhé. Ngoài ra, bạn cũng có thể tiếp thêm động lực cho Tư Ngữ Audio bằng cách quét mã QR ở góc trên bên phải video hoặc link donate ở phần mô tả. Mình trân trọng mọi sự ủng hộ từ bạn. Cảm ơn bạn rất nhiều. Rồi, bây giờ chúng ta cùng bắt đầu nhé!";
+    
+    const outroText = "Cảm ơn bạn đã lắng nghe đến những phút cuối cùng của video này. Không biết những chương truyện hôm nay để lại trong bạn cảm xúc như thế nào? Nếu có thể, bạn hãy để lại một lượt like và vài dòng bình luận chia sẻ cảm nhận nha, mình luôn đọc và trân trọng từng lời của bạn. Và đừng quên đăng ký kênh và bật chuông thông báo để không bỏ lỡ những chương truyện mới mỗi ngày nhé. Chúc bạn luôn an yên và có thật nhiều khoảnh khắc nhẹ nhàng cùng Tư Ngữ Audio.";
+    
+    const msgDonate = "Bạn có thể ủng hộ mình qua link ủng hộ dưới phần mô tả hoặc mã QR trên video để tiếp thêm động lực cho mình nha.";
+    const msgLikeSub = "Nếu bạn yêu thích nội dung kênh mang đến thì nhớ like video và đăng ký kênh nha.";
+
+    // Tách dòng để xử lý
+    let lines = text.split('\n');
+    let newLines = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        // Dùng Regex tìm các dòng bắt đầu bằng "Chương " theo sau là số
+        // \s* cho phép có khoảng trắng đầu dòng, /i để không phân biệt hoa thường
+        let match = line.match(/^\s*Chương\s+(\d+)/i); 
+
+        if (match) {
+            let num = parseInt(match[1], 10);
+            
+            // Điều kiện số bé hơn 10000
+            if (num < 10000) {
+                // Đuôi là 1 (chia lấy dư cho 10 bằng 1)
+                if (num % 10 === 1) {
+                    newLines.push(msgDonate);
+                    newLines.push(""); // Thêm 1 dòng trống cho dễ nhìn
+                } 
+                // Đuôi là 6 (chia lấy dư cho 10 bằng 6)
+                else if (num % 10 === 6) {
+                    newLines.push(msgLikeSub);
+                    newLines.push(""); // Thêm 1 dòng trống cho dễ nhìn
+                }
+            }
+        }
+        newLines.push(line);
+    }
+
+    // Nối văn bản: Intro -> Nội dung đã chèn -> Outro
+    let finalOutput = introText + "\n\n" + newLines.join('\n') + "\n\n" + outroText;
+
+    // Dọn dẹp khoảng trắng dư thừa (nếu có quá nhiều dòng trống liên tiếp do nối)
+    finalOutput = finalOutput.replace(/\n{4,}/g, '\n\n\n');
+
+    // Cập nhật lại vào khung Editor
+    editor.value = finalOutput;
+    
+    // Cập nhật thống kê và lưu trạng thái
+    updateStats();
+    if (typeof searchState !== 'undefined') searchState.isDirty = true;
+    
+    UI.toast("Đã chèn Kịch Bản Audio thành công!", "success");
+    UI.log("Đã tự động chèn Intro, Outro và các lời kêu gọi (đuôi 1, 6).", "success");
+}
+
 function renderPresets() {
     const list = document.getElementById('presetList');
     if (appPresets.length === 0) {
