@@ -220,7 +220,7 @@ function insertAudioScripts() {
         
         // Dùng Regex tìm các dòng bắt đầu bằng "Chương " theo sau là số
         // \s* cho phép có khoảng trắng đầu dòng, /i để không phân biệt hoa thường
-        let match = line.match(/^\s*Chương\s+(\d+)/i); 
+        let match = line.match(/^\s*\[?Chương\s+(\d+)/i); 
 
         if (match) {
             let num = parseInt(match[1], 10);
