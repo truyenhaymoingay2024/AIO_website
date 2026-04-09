@@ -229,12 +229,12 @@ function insertAudioScripts() {
             if (num < 10000) {
                 // Đuôi là 1 (chia lấy dư cho 10 bằng 1)
                 if (num % 10 === 1) {
-                    newLines.push(msgDonate);
+                    newLines.push(msgLikeSub);
                     newLines.push(""); // Thêm 1 dòng trống cho dễ nhìn
                 } 
                 // Đuôi là 6 (chia lấy dư cho 10 bằng 6)
                 else if (num % 10 === 6) {
-                    newLines.push(msgLikeSub);
+                    newLines.push(msgDonate);
                     newLines.push(""); // Thêm 1 dòng trống cho dễ nhìn
                 }
             }
