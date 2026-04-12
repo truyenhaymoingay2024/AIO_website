@@ -774,18 +774,31 @@ function getSmartText(node) {
     if (node.nodeType === 1) {
         if (node.hasAttribute('style')) {
             const style = node.getAttribute('style').toLowerCase().replace(/\s+/g, '');
+            
+            // 1. Đẩy ra ngoài màn hình
             const isHiddenOffscreen = style.includes('position:absolute') && 
-                (style.includes('left:-9999') || style.includes('top:-9999'));
-            const isHiddenZIndex = style.includes('position:absolute') && style.includes('z-index:-1000');
+                (style.includes('left:-999') || style.includes('top:-999'));
+            
+            // 2. Bị đẩy xuống dưới nền
+            const isHiddenZIndex = style.includes('z-index:-100') || style.includes('z-index:-999');
+            
+            // 3. Giấu chữ bằng cách thu nhỏ kích thước
+            const isMicroText = style.includes('font-size:0.') || 
+                                style.includes('font-size:0px') || 
+                                style.includes('line-height:0.');
 
-            if (isHiddenOffscreen || isHiddenZIndex) {
-                return ''; 
+            if (isHiddenOffscreen || isHiddenZIndex || isMicroText) {
+                // SỬA Ở ĐÂY: Trả về thông báo thay vì chuỗi rỗng
+                return '\n[ĐÃ XOÁ PHẦN TEXT ẨN]\n'; 
             }
         }
         
         try {
             const computedStyle = window.getComputedStyle(node);
-            if (computedStyle && computedStyle.display === 'none') return '';
+            if (computedStyle && computedStyle.display === 'none') {
+                // SỬA Ở ĐÂY: Trả về thông báo thay vì chuỗi rỗng
+                return '\n[ĐÃ XOÁ PHẦN TEXT ẨN]\n';
+            }
         } catch(e) {}
         
         if (['SCRIPT', 'STYLE'].includes(node.tagName)) return '';
@@ -877,7 +890,13 @@ async function startFetch() {
         if (hiddenRule) {
             try {
                 doc.querySelectorAll("*").forEach(el => {
-                    if (el.outerHTML.includes(hiddenRule) || el.className?.includes(hiddenRule)) el.remove();
+                    if (el.outerHTML.includes(hiddenRule) || el.className?.includes(hiddenRule)) {
+                        // Tạo một Text Node chứa thông báo và thay thế cho thẻ HTML rác
+                        const textNode = doc.createTextNode('\n[ĐÃ XOÁ PHẦN TEXT ẨN]\n');
+                        if (el.parentNode) {
+                            el.parentNode.replaceChild(textNode, el);
+                        }
+                    }
                 });
             } catch {}
         }
@@ -897,7 +916,16 @@ async function startFetch() {
         }
 
         text = text.replace(/\u00A0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
-        output += `=== LINK ${i+1} ===\n${text}\n\n========================\n\n`;
+        
+        // KIỂM TRA XEM LINK CÓ CHỨA TEXT ẨN ĐÃ BỊ XÓA KHÔNG
+        let warningLine = "";
+        if (text.includes("[ĐÃ XOÁ PHẦN TEXT ẨN]")) {
+            warningLine = `[LINK CÓ TEXT ẨN]\n`;
+            UI.log(`⚠️ Phát hiện text ẩn tại Link ${i+1}`, 'warn'); // Bật dòng này nếu muốn báo cả ra bảng Log
+        }
+
+        // Ghép vào output (Chèn dòng cảnh báo ngay dưới === LINK n ===)
+        output += `=== LINK ${i+1} ===\n${warningLine}${text}\n\n========================\n\n`;
         successCount++;
     }
 
