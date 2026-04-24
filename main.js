@@ -204,7 +204,7 @@ function insertAudioScripts() {
     if (!text.trim()) return UI.toast("Không có nội dung để chèn!", "warn");
 
     // Các đoạn text cấu hình
-    const introText = "Chào mừng bạn đã quay trở lại với Tư Ngữ Audio. Hôm nay, chúng ta sẽ cùng nhau đến với . Và nếu bạn yêu thích những bộ truyện trên kênh, thì đừng quên nhấn like và đăng ký kênh để ủng hộ mình nhé. Ngoài ra, bạn cũng có thể tiếp thêm động lực cho Tư Ngữ Audio bằng cách quét mã QR ở góc trên bên phải video hoặc link donate ở phần mô tả. Mình trân trọng mọi sự ủng hộ từ bạn. Cảm ơn bạn rất nhiều. Rồi, bây giờ chúng ta cùng bắt đầu nhé!";
+    const introText = "Chào mừng bạn đã quay trở lại với Tư Ngữ Audio. Hôm nay, chúng ta sẽ cùng nhau đến với . Và nếu bạn yêu thích những bộ truyện trên kênh, thì đừng quên nhấn like và đăng ký kênh để ủng hộ mình nhé. Ngoài ra, bạn cũng có thể tiếp thêm động lực cho Tư Ngữ Audio bằng cách quét mã QR trên video hoặc link donate ở dưới phần mô tả. Mình trân trọng mọi sự ủng hộ từ bạn. Cảm ơn bạn rất nhiều. Rồi, bây giờ chúng ta cùng bắt đầu nhé!";
     
     const outroText = "Cảm ơn bạn đã lắng nghe đến những phút cuối cùng của video này. Không biết những chương truyện hôm nay để lại trong bạn cảm xúc như thế nào? Nếu có thể, bạn hãy để lại một lượt like và vài dòng bình luận chia sẻ cảm nhận nha, mình luôn đọc và trân trọng từng lời của bạn. Và đừng quên đăng ký kênh và bật chuông thông báo để không bỏ lỡ những chương truyện mới mỗi ngày nhé. Chúc bạn luôn an yên và có thật nhiều khoảnh khắc nhẹ nhàng cùng Tư Ngữ Audio.";
     
