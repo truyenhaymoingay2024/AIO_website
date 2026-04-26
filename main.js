@@ -958,7 +958,7 @@ function formatWattpad() {
         const t = line.trim();
         if (t.startsWith('=== LINK')) return false;
         if (/^\++$/.test(t) || /^\*+$/.test(t) || /^\=+$/.test(t)) return false;
-        if (/^(?:[1-9]\d{0,3}|10000)$/.test(t)) return false;
+        if (/^(?:\d{1,4}|10000)$/.test(t)) return false;
         return true;
     });
 
