@@ -18,7 +18,7 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             All In One <span>Tư Ngữ Audio</span>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">V26.04.2026.1</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">V21.05.2026</div>
     </header>
 
     <aside class="sidebar">
@@ -56,7 +56,6 @@
                 </div>
 
                 <div id="customConfigBox" style="margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Đã đổi từ textarea sang input và CSS height -->
                     <input type="text" id="customSelectors" placeholder="Selector (VD: .post-body)" style="height: 60px;" />
                 </div>
                 
@@ -208,6 +207,16 @@
             <!-- Render Rules Here -->
         </div>
         <div class="modal-footer">
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <button class="btn-secondary" onclick="exportPresets()" style="flex:1;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Xuất bộ lọc (.txt)
+                </button>
+                <button class="btn-secondary" onclick="importPresetsFromFile()" style="flex:1;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Nhập bộ lọc (.txt)
+                </button>
+            </div>
             <button class="btn-primary" style="background: linear-gradient(135deg, var(--primary), #4f46e5);" onclick="runAllPresets()">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 Chạy toàn bộ Bộ Lọc

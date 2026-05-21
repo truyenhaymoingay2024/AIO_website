@@ -259,6 +259,73 @@ function insertAudioScripts() {
     UI.log("Đã tự động chèn Intro, Outro và các lời kêu gọi (đuôi 1, 6).", "success");
 }
 
+// ========== EXPORT / IMPORT PRESETS ==========
+function exportPresets() {
+    if (appPresets.length === 0) {
+        return UI.toast("Không có quy tắc nào để xuất!", "warn");
+    }
+    // Format: find|||replace|||isRegex
+    const lines = appPresets.map(p => {
+        return `${p.find}|||${p.replace}|||${p.isRegex ? 'true' : 'false'}`;
+    });
+    const content = lines.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `aio_presets_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    UI.toast(`Đã xuất ${appPresets.length} quy tắc thành file .txt`, "success");
+}
+
+function importPresetsFromFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.txt';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const content = ev.target.result;
+            const lines = content.split(/\r?\n/);
+            let addedCount = 0;
+            for (let line of lines) {
+                line = line.trim();
+                if (line === '') continue;
+                const parts = line.split('|||');
+                if (parts.length !== 3) {
+                    UI.log(`Dòng bỏ qua (không đúng định dạng): ${line.substring(0, 50)}`, 'warn');
+                    continue;
+                }
+                const [find, replace, isRegexStr] = parts;
+                const isRegex = isRegexStr === 'true';
+                if (isRegex) {
+                    try {
+                        new RegExp(find);
+                    } catch (err) {
+                        UI.log(`Regex không hợp lệ, bỏ qua: ${find}`, 'error');
+                        continue;
+                    }
+                }
+                appPresets.push({ find, replace, isRegex });
+                addedCount++;
+            }
+            if (addedCount > 0) {
+                localStorage.setItem('aio_presets', JSON.stringify(appPresets));
+                renderPresets();
+                UI.toast(`Đã nhập thành công ${addedCount} quy tắc mới!`, "success");
+                UI.log(`Nhập bộ lọc: thêm ${addedCount} rule.`, "success");
+            } else {
+                UI.toast("Không có quy tắc hợp lệ nào được thêm.", "warn");
+            }
+        };
+        reader.onerror = () => UI.toast("Lỗi đọc file!", "error");
+        reader.readAsText(file, 'UTF-8');
+    };
+    input.click();
+}
+
 function renderPresets() {
     const list = document.getElementById('presetList');
     if (appPresets.length === 0) {
