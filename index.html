@@ -18,7 +18,7 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             All In One <span>Tư Ngữ Audio</span>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">V21.05.2026</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">V29.06.2026</div>
     </header>
 
     <aside class="sidebar">
@@ -123,6 +123,12 @@
 
     <main class="main-area">
         <div class="toolbar">
+
+            <button class="btn-tool" onclick="openPresetModal()" style="color: var(--primary); border-color: rgba(59,130,246,0.3);">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                Bộ Lọc Cá Nhân
+            </button>
+
             <button class="btn-tool" onclick="formatWattpad()">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 Lọc Wattpad + Link
@@ -147,11 +153,6 @@
             <button class="btn-tool" onclick="processTuTYT()" title="Lọc các dòng *** n ***, C n, x/y và chèn dòng trống giữa các đoạn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"></path></svg>
                 Lọc Tự TYT
-            </button>
-
-            <button class="btn-tool" onclick="openPresetModal()" style="color: var(--primary); border-color: rgba(59,130,246,0.3);">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                Bộ Lọc Cá Nhân
             </button>
 
             <button class="btn-tool" onclick="formatVanAn()" title="Chuyển thành chuỗi escape \n">
