@@ -137,17 +137,18 @@
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 Xóa Dòng Trống
             </button>
-            
-            <button class="btn-tool" onclick="forceRenderHTML()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                Render HTML
-            </button>
 
-            <button class="btn-tool" onclick="insertAudioScripts()" title="Chèn câu chào, tạm biệt và nhắc nhở donate/like">
+            <!-- <button class="btn-tool" onclick="insertAudioScripts()" title="Chèn câu chào, tạm biệt và nhắc nhở donate/like">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2m7 6v4m-3 0h6m-7-10a3 3 0 016 0v4a3 3 0 01-6 0V8z"></path></svg>
                 Format Kịch Bản Audio
-            </button>
+            </button> -->
             
+            <!-- Button mới: Lọc Tự TYT -->
+            <button class="btn-tool" onclick="processTuTYT()" title="Lọc các dòng *** n ***, C n, x/y và chèn dòng trống giữa các đoạn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"></path></svg>
+                Lọc Tự TYT
+            </button>
+
             <button class="btn-tool" onclick="openPresetModal()" style="color: var(--primary); border-color: rgba(59,130,246,0.3);">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                 Bộ Lọc Cá Nhân
@@ -156,6 +157,11 @@
             <button class="btn-tool" onclick="formatVanAn()" title="Chuyển thành chuỗi escape \n">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                 Format Văn Án
+            </button>
+
+            <button class="btn-tool" onclick="forceRenderHTML()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                Render HTML
             </button>
 
             <button class="btn-tool danger" onclick="clearEditor()" style="margin-left: auto">

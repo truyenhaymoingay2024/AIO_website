@@ -1097,3 +1097,63 @@ function downloadText() {
     a.download = `AIO_Result_${Date.now()}.txt`;
     a.click();
 }
+
+/* ================= XỬ LÝ TỰ TYT (TÍCH HỢP TỪ XuLyTuTYT.html) ================= */
+function processTuTYT() {
+    const editor = document.getElementById('editor');
+    const input = editor.value;
+    if (!input.trim()) {
+        return UI.toast('Không có nội dung để xử lý!', 'warn');
+    }
+
+    const originalLen = input.length;
+    const lines = input.split('\n');
+    const resultLines = [];
+    let removedChars = 0;
+
+    // Các pattern cần xóa toàn bộ dòng
+    const patternStar = /^\*{3}\s+\d+\s+\*{3}$/;   // *** n ***
+    const patternC = /^C\s+\d+$/;                // C n
+    const patternFraction = /^\d+\/\d+$/;         // x/y
+
+    // Duyệt từng dòng, giữ lại những dòng không khớp pattern
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (patternStar.test(trimmed) || patternC.test(trimmed) || patternFraction.test(trimmed)) {
+            // Tính số ký tự đã xóa (bao gồm cả ký tự xuống dòng nếu có)
+            removedChars += line.length + (i < lines.length - 1 ? 1 : 0);
+            continue; // Bỏ qua dòng này
+        }
+
+        resultLines.push(line);
+    }
+
+    // Chèn dòng trống giữa các dòng có nội dung (không rỗng)
+    const finalLines = [];
+    for (let i = 0; i < resultLines.length; i++) {
+        finalLines.push(resultLines[i]);
+        // Nếu dòng hiện tại không rỗng và dòng tiếp theo cũng không rỗng => chèn dòng trống
+        if (
+            resultLines[i].trim() !== '' &&
+            i + 1 < resultLines.length &&
+            resultLines[i + 1].trim() !== ''
+        ) {
+            finalLines.push('');
+        }
+    }
+
+    const processedText = finalLines.join('\n');
+    const newLen = processedText.length;
+    const totalRemoved = originalLen - newLen;
+
+    // Cập nhật vào editor
+    editor.value = processedText;
+    updateStats();
+    searchState.isDirty = true;
+
+    // Thông báo
+    UI.toast(`✅ Đã xóa ${totalRemoved.toLocaleString()} ký tự và định dạng lại văn bản.`, 'success');
+    UI.log(`[Lọc Tự TYT] Đã xóa ${totalRemoved} ký tự, còn lại ${newLen} ký tự.`, 'success');
+}
