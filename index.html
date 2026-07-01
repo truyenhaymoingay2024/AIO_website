@@ -144,15 +144,15 @@
                 Xóa Dòng Trống
             </button>
 
-            <!-- <button class="btn-tool" onclick="insertAudioScripts()" title="Chèn câu chào, tạm biệt và nhắc nhở donate/like">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2m7 6v4m-3 0h6m-7-10a3 3 0 016 0v4a3 3 0 01-6 0V8z"></path></svg>
-                Format Kịch Bản Audio
-            </button> -->
-            
-            <!-- Button mới: Lọc Tự TYT -->
             <button class="btn-tool" onclick="processTuTYT()" title="Lọc các dòng *** n ***, C n, x/y và chèn dòng trống giữa các đoạn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"></path></svg>
-                Lọc Tự TYT
+                Lọc TYT
+            </button>
+
+            <!-- Nút mới: Thêm dấu câu cuối dòng -->
+            <button class="btn-tool" onclick="addPunctuation()" title="Thêm dấu chấm vào cuối dòng nếu thiếu">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
+                Thêm dấu câu
             </button>
 
             <button class="btn-tool" onclick="formatVanAn()" title="Chuyển thành chuỗi escape \n">

@@ -1157,3 +1157,53 @@ function processTuTYT() {
     UI.toast(`✅ Đã xóa ${totalRemoved.toLocaleString()} ký tự và định dạng lại văn bản.`, 'success');
     UI.log(`[Lọc Tự TYT] Đã xóa ${totalRemoved} ký tự, còn lại ${newLen} ký tự.`, 'success');
 }
+
+/* ================= THÊM DẤU CÂU CUỐI DÒNG (TỪ them-dau-cham.html) ================= */
+function addPunctuation() {
+    const editor = document.getElementById('editor');
+    const text = editor.value;
+    if (!text) {
+        return UI.toast('Không có nội dung để xử lý!', 'warn');
+    }
+
+    const lines = text.split('\n');
+    let addedCount = 0;
+    const changes = [];
+
+    // Các dấu câu được coi là hợp lệ ở cuối dòng
+    const punctuation = new Set(['.', ',', '!', '?', ';', ':', '…', '"', "'", ')', ']', '}', '-', '”', '’', '»']);
+
+    // Duyệt qua các dòng có kết thúc bằng xuống hàng (tức không phải dòng cuối cùng nếu văn bản không kết thúc bằng newline)
+    for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i];
+        const trimmed = line.replace(/\s+$/, ''); // bỏ khoảng trắng cuối để kiểm tra ký tự thực
+
+        // 1. Dòng có nội dung (không rỗng)
+        if (trimmed.length === 0) continue;
+
+        // 2. Dòng phải chứa ít nhất một ký tự chữ (theo yêu cầu bổ sung)
+        if (!/[a-zA-ZÀ-ỹ]/.test(trimmed)) continue;
+
+        // 3. Ký tự cuối không phải dấu câu
+        const lastChar = trimmed[trimmed.length - 1];
+        if (!punctuation.has(lastChar)) {
+            // Thêm dấu chấm, giữ lại khoảng trắng cuối (nếu có)
+            const trailingSpace = line.slice(trimmed.length);
+            lines[i] = trimmed + '.' + trailingSpace;
+            addedCount++;
+            changes.push({ lineno: i + 1, before: line, after: lines[i] });
+        }
+    }
+
+    if (addedCount === 0) {
+        UI.toast('Không có dòng nào cần thêm dấu chấm.', 'info');
+        return;
+    }
+
+    // Cập nhật lại nội dung
+    editor.value = lines.join('\n');
+    updateStats();
+    searchState.isDirty = true;
+    UI.toast(`Đã thêm ${addedCount} dấu chấm vào cuối dòng.`, 'success');
+    UI.log(`[Thêm dấu câu] Đã thêm ${addedCount} dấu chấm.`, 'success');
+}
