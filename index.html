@@ -39,7 +39,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                     Danh sách Link
                 </div>
-                <textarea id="links" placeholder="Mỗi dòng một link..." style="height: 100px;"></textarea>
+                <textarea id="links" placeholder="Mỗi dòng một link..." style="height: 100px;" spellcheck="false"></textarea>
             </div>
 
             <div class="input-group">
@@ -76,7 +76,7 @@
         <div id="tab-search" class="tab-content">
             <div class="input-group">
                 <div class="section-title" style="color: var(--primary);">Tìm kiếm</div>
-                <textarea id="findStr" placeholder="Nhập văn bản cần tìm (Hỗ trợ nhiều dòng)..." style="height: 100px; border-color: var(--primary);"></textarea>
+                <textarea id="findStr" placeholder="Nhập văn bản cần tìm (Hỗ trợ nhiều dòng)..." style="height: 100px; border-color: var(--primary);" spellcheck="false"></textarea>
                 <div class="checkbox-row">
                     <input type="checkbox" id="useRegex"> <label for="useRegex" title="Sử dụng biểu thức chính quy">Regex Mode</label>
                     <input type="checkbox" id="caseSensitive" style="margin-left: 15px;"> <label for="caseSensitive">Phân biệt hoa/thường</label>
@@ -85,7 +85,7 @@
 
             <div class="input-group">
                 <div class="section-title" style="color: var(--success);">Thay thế bằng</div>
-                <textarea id="replaceStr" placeholder="Nội dung thay thế (Hỗ trợ nhiều dòng)..." style="height: 80px; border-color: var(--success);"></textarea>
+                <textarea id="replaceStr" placeholder="Nội dung thay thế (Hỗ trợ nhiều dòng)..." style="height: 80px; border-color: var(--success);" spellcheck="false"></textarea>
             </div>
 
             <div id="navControls" class="nav-controls">
@@ -177,7 +177,7 @@
                 <span>TEXT EDITOR (Có thể kéo thả file .txt vào đây)</span>
                 <span id="charCount">0 dòng | 0 từ | 0 ký tự | 🎧 ~0p 0s</span>
             </div>
-            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." oninput="onEditorInput()"></textarea>
+            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." oninput="onEditorInput()" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off"></textarea>
         </div>
 
         <div class="action-footer">
