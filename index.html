@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <!-- CodeMirror: engine editor ảo hóa - chỉ render phần văn bản đang hiển thị trên màn hình
+         thay vì toàn bộ nội dung, giải quyết tận gốc hiện tượng đứng máy khi gõ vào văn bản lớn -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -105,7 +108,7 @@
                 </button>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-secondary" onclick="replaceOne()" style="border-color: var(--success); color: var(--success);">Thay thế hiện tại</button>
-                    <button class="btn-primary" onclick="replaceAll()" style="background: linear-gradient(135deg, var(--success), #059669);">Thay thế Hết</button>
+                    <button class="btn-primary" onclick="deferHeavy(replaceAll)" style="background: linear-gradient(135deg, var(--success), #059669);">Thay thế Hết</button>
                 </div>
             </div>
         </div>
@@ -129,38 +132,37 @@
                 Bộ Lọc Cá Nhân
             </button>
 
-            <button class="btn-tool" onclick="formatWattpad()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Lọc Wattpad + Link
-            </button>
-
-            <button class="btn-tool" onclick="smartJoin()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
-                Nối Thông Minh
-            </button>
-            
-            <button class="btn-tool" onclick="removeEmptyLines()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                Xóa Dòng Trống
-            </button>
-
-            <button class="btn-tool" onclick="processTuTYT()" title="Lọc các dòng *** n ***, C n, x/y và chèn dòng trống giữa các đoạn">
+            <button class="btn-tool" onclick="deferHeavy(processTuTYT)" title="Lọc các dòng *** n ***, C n, x/y và chèn dòng trống giữa các đoạn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"></path></svg>
                 Lọc TYT
             </button>
 
-            <!-- Nút mới: Thêm dấu câu cuối dòng -->
-            <button class="btn-tool" onclick="addPunctuation()" title="Thêm dấu chấm vào cuối dòng nếu thiếu">
+            <button class="btn-tool" onclick="deferHeavy(formatWattpad)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Lọc Wattpad + Link
+            </button>
+
+            <button class="btn-tool" onclick="deferHeavy(removeEmptyLines)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                Xóa Dòng Trống
+            </button>
+
+            <button class="btn-tool" onclick="deferHeavy(smartJoin)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                Nối Thông Minh
+            </button>
+            
+            <button class="btn-tool" onclick="deferHeavy(addPunctuation)" title="Thêm dấu chấm vào cuối dòng nếu thiếu">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
                 Thêm dấu câu
             </button>
 
-            <button class="btn-tool" onclick="formatVanAn()" title="Chuyển thành chuỗi escape \n">
+            <button class="btn-tool" onclick="deferHeavy(formatVanAn)" title="Chuyển thành chuỗi escape \n">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                 Format Văn Án
             </button>
 
-            <button class="btn-tool" onclick="forceRenderHTML()">
+            <button class="btn-tool" onclick="deferHeavy(forceRenderHTML)">
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                 Render HTML
             </button>
@@ -177,7 +179,7 @@
                 <span>TEXT EDITOR (Có thể kéo thả file .txt vào đây)</span>
                 <span id="charCount">0 dòng | 0 từ | 0 ký tự | 🎧 ~0p 0s</span>
             </div>
-            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." oninput="onEditorInput()" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off"></textarea>
+            <textarea id="editor" placeholder="Nội dung sau khi fetch sẽ hiển thị tại đây..." spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off"></textarea>
         </div>
 
         <div class="action-footer">
@@ -224,7 +226,7 @@
                     Nhập bộ lọc (.txt)
                 </button>
             </div>
-            <button class="btn-primary" style="background: linear-gradient(135deg, var(--primary), #4f46e5);" onclick="runAllPresets()">
+            <button class="btn-primary" style="background: linear-gradient(135deg, var(--primary), #4f46e5);" onclick="deferHeavy(runAllPresets)">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 Chạy toàn bộ Bộ Lọc
             </button>
@@ -234,6 +236,7 @@
 
 <div id="toast-container"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

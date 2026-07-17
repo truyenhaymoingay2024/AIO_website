@@ -53,9 +53,32 @@ const UI = {
     }
 };
 
+let _statsDebounceTimer = null;
+const STATS_DEBOUNCE_MS = 400; // Chỉ tính lại từ/dòng sau khi ngừng gõ 400ms, tránh treo UI với văn bản lớn
+
 function onEditorInput() {
     searchState.isDirty = true;
-    updateStats();
+
+    // Cập nhật số ký tự ngay lập tức (rẻ, O(1)) để UI vẫn phản hồi tức thì
+    const text = document.getElementById('editor').value;
+    updateCharCountOnly(text.length);
+
+    // Việc đếm từ/dòng (split trên toàn bộ text) rất tốn kém với văn bản lớn
+    // (vài trăm nghìn - vài triệu ký tự) nếu chạy trên MỖI phím gõ.
+    // Debounce lại để chỉ tính khi người dùng tạm ngừng gõ.
+    clearTimeout(_statsDebounceTimer);
+    _statsDebounceTimer = setTimeout(updateStats, STATS_DEBOUNCE_MS);
+}
+
+function updateCharCountOnly(charCount) {
+    const el = document.getElementById('charCount');
+    // Giữ nguyên phần dòng/từ/thời gian cũ (nếu có), chỉ thay số ký tự để tránh nhấp nháy sai số
+    const current = el.dataset.lastFull;
+    if (current) {
+        el.innerHTML = current.replace(/[\d.,]+(?= ký tự)/, charCount.toLocaleString());
+    } else {
+        el.innerHTML = `<span style="color:var(--text-muted)">... | ${charCount.toLocaleString()} ký tự | <span style="color:var(--primary)">🎧 ~...</span></span>`;
+    }
 }
 
 function updateStats() {
@@ -64,7 +87,8 @@ function updateStats() {
     
     // Đếm số từ, số dòng
     const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-    const lineCount = text === '' ? 0 : text.split(/\n/).length;
+    // CodeMirror đã tự theo dõi số dòng nội bộ (O(1)) - dùng lại thay vì split() toàn bộ text lần nữa
+    const lineCount = window.cmEditor ? window.cmEditor.lineCount() : (text === '' ? 0 : text.split(/\n/).length);
 
     // Tính thời gian TTS (Tốc độ 1.35x = ~255 từ / phút)
     const WPM = 255; 
@@ -80,8 +104,10 @@ function updateStats() {
         timeStr = `${minutes}p ${seconds}s`;
     }
 
-    document.getElementById('charCount').innerHTML = 
-        `<span style="color:var(--text-muted)">${lineCount.toLocaleString()} dòng | ${wordCount.toLocaleString()} từ | ${charCount.toLocaleString()} ký tự | <span style="color:var(--primary)">🎧 ~${timeStr}</span></span>`;
+    const html = `<span style="color:var(--text-muted)">${lineCount.toLocaleString()} dòng | ${wordCount.toLocaleString()} từ | ${charCount.toLocaleString()} ký tự | <span style="color:var(--primary)">🎧 ~${timeStr}</span></span>`;
+    const el = document.getElementById('charCount');
+    el.innerHTML = html;
+    el.dataset.lastFull = html;
 }
 
 function toggleConfig() {
@@ -94,6 +120,83 @@ function switchTab(tabName) {
     document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
+}
+
+/* ================= CODEMIRROR: EDITOR ẢO HÓA (VIRTUALIZED) ================= */
+// Vấn đề gốc: <textarea> chuẩn HTML luôn giữ TOÀN BỘ nội dung trong DOM và
+// buộc trình duyệt tính lại layout/shaping cho cả khối mỗi khi có thay đổi.
+// Với văn bản 1 triệu+ ký tự, trên phần cứng yếu (đặc biệt GPU/driver yếu
+// trên Linux) việc này gây đứng máy thật sự khi gõ.
+//
+// CodeMirror chỉ dựng (render) phần đang hiển thị trong khung nhìn + một
+// vùng đệm nhỏ xung quanh (viewportMargin), bất kể văn bản dài bao nhiêu.
+// Quan trọng hơn: vùng nhập liệu ẩn (hidden input) CodeMirror dùng để bắt
+// phím gõ chỉ chứa một đoạn nhỏ quanh con trỏ, KHÔNG chứa toàn bộ tài liệu
+// -> trình duyệt không còn phải shaping/spellcheck cả triệu ký tự mỗi lần
+// gõ 1 phím nữa. Đây là nguyên nhân cốt lõi khiến việc gõ bị đứng, và
+// CodeMirror giải quyết tận gốc, không phải là giảm nhẹ triệu chứng.
+const editorTextareaEl = document.getElementById('editor');
+
+const cmEditor = CodeMirror.fromTextArea(editorTextareaEl, {
+    mode: null,             // Văn bản thuần, không cần tô cú pháp -> đỡ tốn CPU
+    lineWrapping: true,     // Tương đương white-space: pre-wrap trước đây
+    lineNumbers: false,     // Giữ giao diện như cũ
+    viewportMargin: 30,     // Chỉ render thêm ~30 dòng ngoài khung nhìn (KHÔNG dùng Infinity,
+                            // vì Infinity sẽ ép render toàn bộ tài liệu -> mất hết ý nghĩa ảo hóa)
+    spellcheck: false,
+    autofocus: false,
+    dragDrop: false,        // Tắt xử lý kéo-thả mặc định của CodeMirror, dùng logic kéo-thả riêng của app bên dưới
+    undoDepth: 200
+});
+window.cmEditor = cmEditor;
+
+// ---- CẦU NỐI TƯƠNG THÍCH ----
+// Toàn bộ code xử lý văn bản có sẵn của app (formatWattpad, smartJoin,
+// removeEmptyLines, search/replace, v.v...) đang thao tác trực tiếp qua
+// document.getElementById('editor').value/.selectionStart/.setSelectionRange()/
+// .setRangeText()/.focus(). Thay vì sửa lại từng hàm, ta định nghĩa lại các
+// thuộc tính/phương thức đó ngay trên phần tử textarea gốc (giờ đã bị
+// CodeMirror ẩn đi) để tự động chuyển tiếp sang CodeMirror. Nhờ vậy toàn bộ
+// phần còn lại của main.js không cần đổi một dòng nào.
+Object.defineProperty(editorTextareaEl, 'value', {
+    get() { return cmEditor.getValue(); },
+    set(v) { cmEditor.setValue(v || ''); }
+});
+
+Object.defineProperty(editorTextareaEl, 'selectionStart', {
+    get() { return cmEditor.indexFromPos(cmEditor.getCursor('from')); }
+});
+
+Object.defineProperty(editorTextareaEl, 'selectionEnd', {
+    get() { return cmEditor.indexFromPos(cmEditor.getCursor('to')); }
+});
+
+editorTextareaEl.setSelectionRange = function (start, end) {
+    cmEditor.setSelection(cmEditor.posFromIndex(start), cmEditor.posFromIndex(end));
+};
+
+editorTextareaEl.setRangeText = function (text, start, end) {
+    cmEditor.replaceRange(text, cmEditor.posFromIndex(start), cmEditor.posFromIndex(end));
+};
+
+editorTextareaEl.focus = function () { cmEditor.focus(); };
+editorTextareaEl.select = function () { cmEditor.execCommand('selectAll'); };
+
+// Thay cho oninput="onEditorInput()" trên textarea gốc (đã bị ẩn nên không còn nhận sự kiện input)
+cmEditor.on('change', () => onEditorInput());
+
+// ---- CHẠY TÁC VỤ NẶNG KHÔNG LÀM ĐỨNG UI ----
+// Các thao tác xử lý toàn bộ văn bản (lọc, nối, thay thế hàng loạt...) vẫn
+// là O(n) theo độ dài văn bản - với 1 triệu+ ký tự có thể mất vài trăm ms.
+// deferHeavy() nhường lại 1 nhịp cho trình duyệt vẽ xong trạng thái UI
+// (log "đang xử lý") TRƯỚC KHI chạy tác vụ chặn main thread, để người dùng
+// thấy phản hồi ngay khi bấm nút thay vì cảm giác đứng máy.
+function deferHeavy(fn) {
+    const len = editorTextareaEl.value.length;
+    if (len > 150000) {
+        UI.log('⏳ Đang xử lý văn bản lớn, vui lòng đợi giây lát...', 'info');
+    }
+    setTimeout(fn, 30);
 }
 
 /* ================= DRAG & DROP IMPORT ================= */
@@ -670,46 +773,13 @@ function updateNavUI() {
 }
 
 function scrollToMatch(start, end) {
-    const editor = document.getElementById('editor');
-    const text = editor.value;
-
-    const mirror = document.createElement('div');
-    const style = window.getComputedStyle(editor);
-
-    const props = [
-        'font-family', 'font-size', 'font-weight', 'line-height',
-        'padding', 'border', 'width', 'white-space', 'word-wrap', 'word-break',
-        'box-sizing'
-    ];
-    props.forEach(p => mirror.style[p] = style[p]);
-
-    mirror.style.position = 'absolute';
-    mirror.style.visibility = 'hidden';
-    mirror.style.top = '0';
-    mirror.style.left = '0';
-    mirror.style.overflow = 'hidden';
-
-    const beforeText = text.substring(0, start);
-    const matchText = text.substring(start, end);
-
-    mirror.textContent = beforeText;
-    const span = document.createElement('span');
-    span.textContent = matchText;
-    mirror.appendChild(span);
-
-    document.body.appendChild(mirror);
-
-    const offsetTop = span.offsetTop;
-    const editorHeight = editor.clientHeight;
-
-    const scrollTarget = offsetTop - (editorHeight / 2) + parseInt(style.paddingTop);
-
-    editor.scrollTo({
-        top: scrollTarget > 0 ? scrollTarget : 0,
-        behavior: 'smooth'
-    });
-
-    document.body.removeChild(mirror);
+    // CodeMirror biết chính xác tọa độ dòng/cột của vị trí start/end mà không
+    // cần dựng lại (render) phần văn bản phía trước để đo - rẻ hơn nhiều so
+    // với kỹ thuật "mirror div" cũ (vốn phải copy + đo layout cả khối văn bản
+    // trước vị trí khớp, có thể gần 1 triệu ký tự mỗi lần nhảy kết quả).
+    const from = cmEditor.posFromIndex(start);
+    const to = cmEditor.posFromIndex(end);
+    cmEditor.scrollIntoView({ from, to }, 100);
 }
 
 function highlightMatch() {
