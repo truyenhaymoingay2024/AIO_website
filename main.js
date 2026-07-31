@@ -122,6 +122,60 @@ function switchTab(tabName) {
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
+/* ================= DRAWER MENU (MOBILE) ================= */
+// Trên mobile, 2 tab "Lấy dữ liệu" và "Tìm kiếm & Thay thế" được gom vào 1
+// drawer trượt ra từ cạnh trái, mở/đóng bằng nút hamburger trên header.
+// Khi drawer đóng lại, Text Editor chiếm trọn màn hình chính.
+const sidebarEl = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function openSidebar() {
+    sidebarEl.classList.add('open');
+    sidebarBackdrop.classList.add('show');
+    // Đang mở menu công cụ thì ẩn thanh tìm kiếm nổi để tránh trùng lặp điều khiển
+    refreshFloatingSearchBar();
+}
+
+function closeSidebar() {
+    sidebarEl.classList.remove('open');
+    sidebarBackdrop.classList.remove('show');
+    // Quay lại Text Editor: nếu đang có kết quả tìm kiếm thì hiện lại thanh nổi
+    refreshFloatingSearchBar();
+}
+
+function toggleSidebar() {
+    if (sidebarEl.classList.contains('open')) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+document.getElementById('btnMenuToggle').addEventListener('click', toggleSidebar);
+document.getElementById('btnSidebarClose').addEventListener('click', closeSidebar);
+sidebarBackdrop.addEventListener('click', closeSidebar);
+
+/* ================= THANH TÌM KIẾM NỔI (FLOATING SEARCH BAR) ================= */
+// Hiện khi: có ít nhất 1 kết quả tìm kiếm VÀ drawer đang đóng (tức người dùng
+// đã quay lại xem/chỉnh Text Editor). Cho phép duyệt trước/sau và thay thế
+// ngay trên Text Editor mà không cần mở lại menu.
+function refreshFloatingSearchBar() {
+    const bar = document.getElementById('floatingSearchBar');
+    if (!bar) return;
+    const hasMatches = searchState.matches.length > 0;
+    const drawerOpen = sidebarEl.classList.contains('open');
+    if (hasMatches && !drawerOpen) {
+        bar.classList.add('show');
+        document.getElementById('floatingNavCounter').innerText = document.getElementById('navCounter').innerText;
+    } else {
+        bar.classList.remove('show');
+    }
+}
+
+function dismissFloatingSearchBar() {
+    document.getElementById('floatingSearchBar').classList.remove('show');
+}
+
 /* ================= CODEMIRROR: EDITOR ẢO HÓA (VIRTUALIZED) ================= */
 // Vấn đề gốc: <textarea> chuẩn HTML luôn giữ TOÀN BỘ nội dung trong DOM và
 // buộc trình duyệt tính lại layout/shaping cho cả khối mỗi khi có thay đổi.
@@ -199,10 +253,35 @@ function deferHeavy(fn) {
     setTimeout(fn, 30);
 }
 
-/* ================= DRAG & DROP IMPORT ================= */
+/* ================= NHẬP FILE .TXT (KÉO-THẢ + NÚT TẢI LÊN) ================= */
 const editorWrapper = document.getElementById('editorWrapper');
 const editorEle = document.getElementById('editor');
 
+// Hàm dùng chung: đọc 1 file .txt và nạp nội dung vào editor.
+// Dùng chung cho cả kéo-thả (desktop) và nút "Tải file lên" (mobile),
+// vì trên điện thoại kéo-thả file từ trình quản lý tệp vào trình duyệt
+// không tiện lợi như trên máy tính (đây là hạn chế mặc định của nền tảng).
+function importTxtFile(file) {
+    if (!file) return;
+
+    // Chỉ chấp nhận file .txt (theo đuôi file hoặc MIME type)
+    if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
+        return UI.toast("Chỉ hỗ trợ file định dạng Text (.txt)", "error");
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        editorEle.value = event.target.result;
+        updateStats();
+        searchState.isDirty = true;
+        UI.toast(`Đã nhập dữ liệu từ file: ${file.name}`, "success");
+        UI.log(`Nhập file thành công: ${file.name} (${file.size} bytes)`, "success");
+    };
+    reader.onerror = () => UI.toast("Lỗi đọc file!", "error");
+    reader.readAsText(file);
+}
+
+// --- Kéo & thả (chủ yếu dành cho desktop) ---
 editorWrapper.addEventListener('dragover', (e) => {
     e.preventDefault();
     editorWrapper.classList.add('drag-over');
@@ -216,26 +295,25 @@ editorWrapper.addEventListener('dragleave', (e) => {
 editorWrapper.addEventListener('drop', (e) => {
     e.preventDefault();
     editorWrapper.classList.remove('drag-over');
-    
     if (e.dataTransfer.files.length > 0) {
-        const file = e.dataTransfer.files[0];
-        
-        // Validate MIME type hoac duoi .txt
-        if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
-            return UI.toast("Chỉ hỗ trợ file định dạng Text (.txt)", "error");
-        }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            editorEle.value = event.target.result;
-            updateStats();
-            searchState.isDirty = true;
-            UI.toast(`Đã nhập dữ liệu từ file: ${file.name}`, "success");
-            UI.log(`Nhập file thành công: ${file.name} (${file.size} bytes)`, "success");
-        };
-        reader.onerror = () => UI.toast("Lỗi đọc file!", "error");
-        reader.readAsText(file);
+        importTxtFile(e.dataTransfer.files[0]);
     }
+});
+
+// --- Nút "Tải file lên" (chủ yếu dành cho mobile, nhưng dùng tốt trên mọi thiết bị) ---
+const btnUploadFile = document.getElementById('btnUploadFile');
+const fileInput = document.getElementById('fileInput');
+
+btnUploadFile.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        importTxtFile(e.target.files[0]);
+    }
+    // Reset value để có thể chọn lại đúng file đó ở lần sau (đổi thì mới bắn sự kiện change)
+    fileInput.value = '';
 });
 
 
@@ -759,9 +837,13 @@ function initSearch() {
         updateNavUI();
         highlightMatch();
         UI.log(`Tìm thấy ${count} kết quả.`, 'success');
+        // Có kết quả -> tự động đóng drawer, đưa người dùng quay lại Text Editor
+        // để thấy ngay đoạn khớp đầu tiên cùng thanh điều hướng nổi (trước/sau, thay thế).
+        closeSidebar();
     } else {
         searchState.currentIndex = -1;
         document.getElementById('navCounter').innerText = "0 / 0";
+        refreshFloatingSearchBar();
         UI.toast("Không tìm thấy kết quả nào", "warn");
     }
 }
@@ -770,6 +852,7 @@ function updateNavUI() {
     const current = searchState.currentIndex + 1;
     const total = searchState.matches.length;
     document.getElementById('navCounter').innerText = `${current} / ${total}`;
+    refreshFloatingSearchBar();
 }
 
 function scrollToMatch(start, end) {
@@ -803,6 +886,7 @@ function navMatch(dir) {
 
         if (searchState.matches.length === 0) {
             document.getElementById('navCounter').innerText = "0 / 0";
+            refreshFloatingSearchBar();
             return;
         }
 
@@ -863,12 +947,81 @@ function replaceAll() {
 
         searchState.matches = [];
         document.getElementById('navCounter').innerText = "0 / 0";
+        refreshFloatingSearchBar();
         searchState.isDirty = true;
         updateStats();
     }
 }
 
-/* ================= CORE FETCH LOGIC ================= */
+/* ================= DECODE OBFUSCATED HTML (float left/right) ================= */
+function decodeObfuscatedHtml(htmlString) {
+    if (!htmlString || htmlString.trim() === '') return '';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+
+    // Tìm tất cả span có float left/right
+    const allSpans = doc.querySelectorAll('span[style*="float: left"], span[style*="float: right"], span[style*="float:left"], span[style*="float:right"]');
+    if (allSpans.length === 0) {
+        // Không có obfuscate, trả về text gốc
+        return doc.body.textContent || '';
+    }
+
+    // Gom các span theo container cha (inline-block)
+    const containerMap = new Map();
+    allSpans.forEach(span => {
+        let container = span.parentElement;
+        // Nếu container không phải span hoặc không có inline-block, dùng chính span
+        if (!container || container.tagName !== 'SPAN' || !container.style.display?.includes('inline-block')) {
+            container = span;
+        }
+        if (!containerMap.has(container)) containerMap.set(container, []);
+        const style = span.getAttribute('style') || '';
+        const isLeft = style.includes('float: left') || style.includes('float:left');
+        const isRight = style.includes('float: right') || style.includes('float:right');
+        let type = 'unknown';
+        if (isLeft) type = 'left';
+        else if (isRight) type = 'right';
+        const text = span.textContent || '';
+        if (text) containerMap.get(container).push({ text, type });
+    });
+
+    // Lấy danh sách container theo thứ tự xuất hiện trong DOM
+    const containerNodes = [];
+    const seen = new Set();
+    doc.querySelectorAll('body span').forEach(span => {
+        if (containerMap.has(span) && !seen.has(span)) {
+            seen.add(span);
+            containerNodes.push(span);
+        }
+    });
+    if (containerNodes.length === 0) {
+        containerMap.forEach((_, container) => containerNodes.push(container));
+    }
+
+    // Ghép từng container: left theo thứ tự, right đảo ngược
+    let resultParts = [];
+    containerNodes.forEach(container => {
+        const items = containerMap.get(container) || [];
+        if (items.length === 0) return;
+        const leftItems = items.filter(item => item.type === 'left');
+        const rightItems = items.filter(item => item.type === 'right');
+        const leftText = leftItems.map(item => item.text).join('');
+        const rightText = rightItems.map(item => item.text).reverse().join('');
+        const combined = leftText + rightText;
+        if (combined) resultParts.push(combined);
+    });
+
+    let finalText = resultParts.join(' ');
+    // Xử lý entity HTML (nếu còn)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = finalText;
+    finalText = tempDiv.textContent || tempDiv.innerText || finalText;
+    finalText = finalText.replace(/\s+/g, ' ').trim();
+    return finalText;
+}
+
+/* ================= CORE FETCH LOGIC (có tích hợp giải mã obfuscate) ================= */
 async function stableFetch(url) {
     const fetchWithTimeout = async (target, timeout = 6000) => {
         const controller = new AbortController();
@@ -972,6 +1125,7 @@ async function startFetch() {
         
         UI.processing(false);
         updateStats();
+        closeSidebar(); // Đóng menu, hiện ngay nội dung vừa fetch trên Text Editor
         
         let summary = `🎯 TỔNG KẾT WATTPAD.COM:\n`;
         summary += `• Tổng link: ${result.totalLinks}\n`;
@@ -1039,17 +1193,34 @@ async function startFetch() {
         }
 
         let text = "";
-        if (type === 'custom' && selector) {
-            const nodes = doc.querySelectorAll(selector);
-            nodes.forEach(n => text += getSmartText(n) + "\n\n");
-        } else if (type === 'truyenfull') {
-            text = (doc.querySelector('.chapter-title')?.textContent || '') + "\n\n" +
-                getSmartText(doc.querySelector('#chapter-c'));
-        } else if (type === 'wattpadvn') {
-            text = (doc.querySelector('.current-chapter')?.textContent || '') + "\n\n" +
-                getSmartText(doc.querySelector('.truyen'));
+
+        // ===== KIỂM TRA OBFUSCATE: float left/right =====
+        const isObfuscated = html && html.includes('float: left') && html.includes('float: right');
+
+        if (isObfuscated) {
+            UI.log('🔍 Phát hiện HTML bị obfuscate (float left/right) → tiến hành giải mã...', 'info');
+            const decoded = decodeObfuscatedHtml(html);
+            text = decoded || '';
+            if (!text) {
+                UI.log('⚠️ Giải mã không thành công, lấy text gốc', 'warn');
+                text = getSmartText(doc.body);
+            } else {
+                UI.log('✅ Giải mã obfuscate thành công.', 'success');
+            }
         } else {
-            text = getSmartText(doc.body);
+            // Xử lý thông thường theo selector
+            if (type === 'custom' && selector) {
+                const nodes = doc.querySelectorAll(selector);
+                nodes.forEach(n => text += getSmartText(n) + "\n\n");
+            } else if (type === 'truyenfull') {
+                text = (doc.querySelector('.chapter-title')?.textContent || '') + "\n\n" +
+                    getSmartText(doc.querySelector('#chapter-c'));
+            } else if (type === 'wattpadvn') {
+                text = (doc.querySelector('.current-chapter')?.textContent || '') + "\n\n" +
+                    getSmartText(doc.querySelector('.truyen'));
+            } else {
+                text = getSmartText(doc.body);
+            }
         }
 
         text = text.replace(/\u00A0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
@@ -1066,9 +1237,11 @@ async function startFetch() {
         successCount++;
     }
 
+    output = output.replace(/\n{3,}/g, '\n\n');
     editor.value = output;
     updateStats();
     UI.processing(false);
+    closeSidebar(); // Đóng menu, hiện ngay nội dung vừa fetch trên Text Editor
 
     let summaryMsg = `\n=== 📊 TỔNG KẾT QUÁ TRÌNH ===\n`;
     summaryMsg += `• Tổng số link: ${links.length}\n`;

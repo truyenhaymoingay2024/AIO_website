@@ -101,6 +101,140 @@ body {
 	border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.header-version {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+}
+
+/* Nút mở/đóng drawer menu - chỉ hiển thị trên mobile (xem media query) */
+.btn-menu-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	background: var(--bg-surface);
+	border: 1px solid var(--border-base);
+	border-radius: var(--radius-md);
+	color: var(--text-main);
+	cursor: pointer;
+	flex-shrink: 0;
+}
+.btn-menu-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Lớp phủ tối phía sau drawer khi mở trên mobile */
+.sidebar-backdrop {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	z-index: 999;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s var(--ease-out);
+}
+.sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* Header riêng bên trong drawer (mobile), có nút đóng - ẩn trên desktop */
+.sidebar-drawer-header {
+	display: none;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--border-base);
+	font-weight: 700;
+	font-size: 0.85rem;
+	color: var(--text-main);
+	flex-shrink: 0;
+}
+.btn-sidebar-close {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--radius-sm);
+}
+.btn-sidebar-close:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
+/* Thanh nổi điều hướng kết quả tìm kiếm (hiện khi có kết quả + drawer đã đóng) */
+.floating-search-bar {
+	display: none;
+	align-items: center;
+	gap: 8px;
+	background: var(--bg-panel);
+	border: 1px solid rgba(59, 130, 246, 0.3);
+	border-radius: var(--radius-md);
+	padding: 8px 10px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+	flex-wrap: wrap;
+}
+.floating-search-bar.show { display: flex; }
+.btn-float-nav {
+	width: 32px;
+	height: 32px;
+	flex-shrink: 0;
+	border-radius: var(--radius-sm);
+	background: var(--bg-surface);
+	border: 1px solid var(--border-base);
+	color: var(--text-main);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+.btn-float-nav:hover { border-color: var(--primary); color: var(--primary); }
+.floating-search-counter {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--text-muted);
+	min-width: 52px;
+	text-align: center;
+	flex-shrink: 0;
+}
+.btn-float-replace {
+	flex: 1;
+	min-width: 96px;
+	padding: 7px 10px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--border-base);
+	background: var(--bg-surface);
+	color: var(--text-main);
+	cursor: pointer;
+	white-space: nowrap;
+	transition: all 0.2s;
+}
+.btn-float-replace:hover { border-color: var(--text-muted); }
+.btn-float-replace.primary { background: var(--success); border-color: var(--success); color: #fff; }
+.btn-float-replace.primary:hover { background: #059669; }
+.btn-float-close {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	flex-shrink: 0;
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.btn-float-close:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
 /* --- SIDEBAR --- */
 .sidebar {
 	background: var(--bg-panel);
@@ -438,12 +572,53 @@ textarea {
 	background: rgba(0, 0, 0, 0.2);
 	border-bottom: 1px solid var(--border-base);
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: center;
+	gap: 6px 12px;
 	font-size: 0.7rem;
 	color: var(--text-muted);
 	font-family: var(--font-mono);
 }
+
+.editor-header-left {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-width: 0;
+}
+
+.editor-label { white-space: nowrap; }
+.editor-label-hint { color: var(--text-dim); }
+
+/* Nút "Tải file lên": phương án thay thế cho kéo-thả, vì trên điện thoại
+   (mặc định của nền tảng, không riêng gì web này) thao tác kéo-thả file
+   từ trình quản lý tệp vào trình duyệt rất bất tiện. */
+.btn-upload {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	background: rgba(59, 130, 246, 0.1);
+	border: 1px solid rgba(59, 130, 246, 0.25);
+	color: var(--primary);
+	padding: 5px 10px;
+	border-radius: var(--radius-sm);
+	font-family: var(--font-sans);
+	font-size: 0.7rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.btn-upload:hover {
+	background: var(--primary);
+	color: white;
+}
+
+.btn-upload:active { transform: translateY(1px); }
 
 /* #editor (textarea gốc) giờ bị CodeMirror ẩn đi (display:none tự động).
    Toàn bộ style hiển thị chuyển sang .CodeMirror bên dưới. */
@@ -774,16 +949,134 @@ textarea {
 .checkbox-row input { width: auto; margin-right: 4px; }
 
 /* --- RESPONSIVE --- */
-@media (max-width: 1024px) {
+/* Từ đây trở xuống: sidebar (Lấy dữ liệu / Tìm kiếm & Thay thế) chuyển thành
+   1 drawer trượt ra từ bên trái, mở/đóng bằng nút hamburger trên header.
+   Nhờ vậy Text Editor (phần quan trọng nhất khi dùng trên điện thoại) được
+   chiếm trọn phần còn lại của màn hình, thay vì bị sidebar cố định chiếm chỗ. */
+@media (max-width: 900px) {
 	.app-container {
 		grid-template-columns: 1fr;
-		grid-template-rows: 50px auto 1fr;
+		grid-template-rows: 56px 1fr;
 	}
+
+	.header-version { display: none; } /* nhường chỗ cho nút menu trên header hẹp */
+	.btn-menu-toggle { display: flex; }
+	.sidebar-backdrop { display: block; }
+	.sidebar-drawer-header { display: flex; }
+
 	.sidebar {
-		max-height: 40vh;
-		border-right: none;
-		border-bottom: 1px solid var(--border-base);
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: min(88vw, 380px);
+		max-width: 380px;
+		height: 100vh;
+		height: 100dvh;
+		max-height: none;
+		z-index: 1000;
+		border-right: 1px solid var(--border-base);
+		box-shadow: 12px 0 45px rgba(0, 0, 0, 0.5);
+		transform: translateX(-100%);
+		transition: transform 0.3s var(--ease-out);
 	}
+	.sidebar.open { transform: translateX(0); }
+
 	.main-area { padding: 15px; }
-	.log-container { height: 120px; }
+	.log-container { height: 200px; }
+}
+
+/* --- MOBILE PORTRAIT (tối ưu cho màn dọc rộng tối thiểu ~449dp, kiểu Galaxy A34 5G) --- */
+@media (max-width: 600px) {
+	/* vh làm fallback cho trình duyệt cũ, dvh (chiều cao viewport ĐỘNG) ghi đè sau cùng
+	   để tự co giãn theo thanh địa chỉ / thanh tìm kiếm ẩn-hiện trên di động */
+	html, body { height: 100vh; }
+	html, body { height: 100dvh; }
+
+	/* Hỗ trợ vùng an toàn (tai thỏ / viền bo) trên các máy Android hiện đại */
+	.app-container {
+		padding-bottom: env(safe-area-inset-bottom, 0);
+	}
+
+	.app-header { padding: 0 12px; }
+	.brand { font-size: 0.85rem; gap: 6px; }
+	.brand svg { width: 20px; height: 20px; flex-shrink: 0; }
+	.brand span { font-size: 0.6rem; padding: 2px 6px; }
+
+	.sidebar-tabs { padding: 0 2px; }
+	.tab-btn { padding: 12px 0; font-size: 0.78rem; gap: 5px; }
+	.tab-btn svg { width: 13px; height: 13px; }
+
+	.tab-content { padding: 14px; gap: 12px; }
+
+	textarea, input[type="text"] { font-size: 0.85rem; padding: 10px; }
+	.radio-grid { gap: 6px; }
+	.radio-item label { padding: 9px 6px; font-size: 0.72rem; }
+
+	/* Đảm bảo vùng chạm tối thiểu ~44px cho các nút chính, dễ bấm bằng ngón tay */
+	.btn-primary, .btn-secondary { min-height: 44px; font-size: 0.8rem; }
+	.btn-nav { min-width: 40px; }
+
+	.log-content { font-size: 0.68rem; }
+
+	.main-area { padding: 10px; gap: 10px; }
+
+	/* Thanh công cụ: cuộn ngang thay vì xuống dòng liên tục, để dành chiều cao cho khung soạn thảo */
+	.toolbar {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: thin;
+		padding-bottom: 6px;
+		margin: 0 -10px;
+		padding-left: 10px;
+		padding-right: 10px;
+		width: calc(100% + 20px);
+	}
+	.btn-tool {
+		flex-shrink: 0;
+		min-height: 38px;
+		font-size: 0.72rem;
+		padding: 7px 10px;
+	}
+	.btn-tool.danger { margin-left: 4px !important; }
+
+	/* Thanh nổi điều hướng kết quả tìm kiếm: gọn lại trên màn hẹp */
+	.floating-search-bar { padding: 7px 8px; gap: 6px; }
+	.btn-float-replace { font-size: 0.7rem; padding: 7px 8px; min-width: 80px; }
+
+	.editor-header {
+		padding: 8px 12px;
+		font-size: 0.65rem;
+	}
+	.editor-header-left { gap: 6px; }
+	.editor-label-hint { display: none; } /* Ẩn gợi ý kéo-thả trên mobile, vì đã có nút "Tải file lên" thay thế */
+	.btn-upload { padding: 6px 10px; font-size: 0.68rem; min-height: 32px; }
+	#charCount { width: 100%; font-size: 0.62rem; }
+
+	.CodeMirror { font-size: 0.85rem; }
+	.CodeMirror-lines { padding: 14px 0; }
+	.CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like { padding: 0 14px; }
+
+	.action-footer { gap: 8px; }
+	.btn-action { padding: 12px 6px; font-size: 0.76rem; min-height: 46px; gap: 6px; }
+	.btn-action svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+	.modal-content { width: 94%; max-height: 88vh; }
+	.preset-add-form { padding: 12px; gap: 8px; }
+	.preset-add-form input[type="text"] { min-width: 120px; }
+	.modal-header { padding: 14px 16px; }
+	.preset-list { padding: 12px 16px; }
+	.modal-footer { padding: 12px 16px; }
+
+	.toast { left: 12px; right: 12px; bottom: 16px; }
+}
+
+/* Tinh chỉnh thêm cho chiều rộng rất hẹp (sát ngưỡng tối thiểu 449dp) */
+@media (max-width: 460px) {
+	.brand span { display: none; } /* Ẩn badge "Tư Ngữ Audio" để tránh chèn ép, tên đã đủ trong "brand" chính */
+	.checkbox-row { flex-wrap: wrap; row-gap: 6px; }
+	/* Vẫn giữ 2 nút chia đôi chung 1 hàng, chỉ thu nhỏ padding/chữ/khoảng cách cho vừa màn hẹp */
+	.action-footer { gap: 6px; }
+	.btn-action { padding: 10px 4px; font-size: 0.7rem; gap: 4px; }
+	.btn-action svg { width: 14px; height: 14px; }
 }
