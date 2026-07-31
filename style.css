@@ -179,7 +179,12 @@ body {
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 	flex-wrap: wrap;
 }
-.floating-search-bar.show { display: flex; }
+/* Thanh nổi chỉ dành cho mobile (nơi menu tìm kiếm là drawer ẩn/hiện).
+   Trên desktop, sidebar luôn hiển thị sẵn nên không cần thanh nổi này,
+   tránh bị lặp 2 nơi thao tác thay thế cùng lúc. */
+@media (max-width: 900px) {
+	.floating-search-bar.show { display: flex; }
+}
 .btn-float-nav {
 	width: 32px;
 	height: 32px;
