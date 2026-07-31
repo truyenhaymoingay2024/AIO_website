@@ -954,22 +954,15 @@ function replaceAll() {
 }
 
 /* ================= DECODE OBFUSCATED HTML (float left/right) ================= */
-function decodeObfuscatedHtml(htmlString) {
-    if (!htmlString || htmlString.trim() === '') return '';
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
-
-    // Tìm tất cả span có float left/right
-    const allSpans = doc.querySelectorAll('span[style*="float: left"], span[style*="float: right"], span[style*="float:left"], span[style*="float:right"]');
-    if (allSpans.length === 0) {
-        // Không có obfuscate, trả về text gốc
-        return doc.body.textContent || '';
-    }
+// Giải mã các span float trong PHẠM VI 1 node (thường là 1 thẻ <p>), trả về
+// 1 chuỗi văn bản duy nhất cho đoạn đó (chưa có \n).
+function decodeFloatSpansIn(root) {
+    const spans = root.querySelectorAll('span[style*="float: left"], span[style*="float: right"], span[style*="float:left"], span[style*="float:right"]');
+    if (spans.length === 0) return '';
 
     // Gom các span theo container cha (inline-block)
     const containerMap = new Map();
-    allSpans.forEach(span => {
+    spans.forEach(span => {
         let container = span.parentElement;
         // Nếu container không phải span hoặc không có inline-block, dùng chính span
         if (!container || container.tagName !== 'SPAN' || !container.style.display?.includes('inline-block')) {
@@ -986,10 +979,10 @@ function decodeObfuscatedHtml(htmlString) {
         if (text) containerMap.get(container).push({ text, type });
     });
 
-    // Lấy danh sách container theo thứ tự xuất hiện trong DOM
+    // Lấy danh sách container theo thứ tự xuất hiện trong DOM (trong phạm vi root)
     const containerNodes = [];
     const seen = new Set();
-    doc.querySelectorAll('body span').forEach(span => {
+    root.querySelectorAll('span').forEach(span => {
         if (containerMap.has(span) && !seen.has(span)) {
             seen.add(span);
             containerNodes.push(span);
@@ -1012,12 +1005,51 @@ function decodeObfuscatedHtml(htmlString) {
         if (combined) resultParts.push(combined);
     });
 
-    let finalText = resultParts.join(' ');
-    // Xử lý entity HTML (nếu còn)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = finalText;
-    finalText = tempDiv.textContent || tempDiv.innerText || finalText;
-    finalText = finalText.replace(/\s+/g, ' ').trim();
+    return resultParts.join(' ');
+}
+
+function decodeObfuscatedHtml(htmlString) {
+    if (!htmlString || htmlString.trim() === '') return '';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+
+    // Tìm tất cả span có float left/right
+    const allSpans = doc.querySelectorAll('span[style*="float: left"], span[style*="float: right"], span[style*="float:left"], span[style*="float:right"]');
+    if (allSpans.length === 0) {
+        // Không có obfuscate: vẫn tách đoạn theo <p> để giữ dòng trống giữa các đoạn
+        const paras = Array.from(doc.querySelectorAll('p'))
+            .map(p => (p.textContent || '').trim())
+            .filter(Boolean);
+        return paras.length > 0 ? paras.join('\n\n') : (doc.body.textContent || '');
+    }
+
+    // Có <p>: giải mã riêng từng <p> rồi nối các đoạn bằng 1 dòng trống.
+    // Không có <p> (obfuscate tràn lan ở body): giải mã cả khối như 1 đoạn.
+    const pNodes = Array.from(doc.querySelectorAll('p'));
+    let finalText;
+    if (pNodes.length > 0) {
+        const paragraphs = pNodes
+            .map(p => decodeFloatSpansIn(p) || p.textContent || '')
+            .map(t => t.trim())
+            .filter(Boolean);
+        finalText = paragraphs.join('\n\n');
+    } else {
+        finalText = decodeFloatSpansIn(doc.body);
+    }
+
+    // Xử lý entity HTML (nếu còn) mà không làm mất dòng trống giữa các đoạn
+    finalText = finalText
+        .split('\n\n')
+        .map(part => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = part;
+            const decodedPart = tempDiv.textContent || tempDiv.innerText || part;
+            return decodedPart.replace(/\s+/g, ' ').trim();
+        })
+        .filter(Boolean)
+        .join('\n\n');
+
     return finalText;
 }
 
