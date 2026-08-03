@@ -318,6 +318,17 @@ fileInput.addEventListener('change', (e) => {
 
 
 /* ================= KEYBOARD SHORTCUTS ================= */
+
+// Dùng chung cho Enter (trong ô Tìm/Thay) và F3: nếu kết quả tìm kiếm đã cũ
+// (hoặc chưa tìm lần nào) thì tìm lại từ đầu, ngược lại thì duyệt tới/lui.
+function navigateOrInitSearch(dir) {
+    if (searchState.isDirty || searchState.matches.length === 0) {
+        initSearch();
+    } else {
+        navMatch(dir);
+    }
+}
+
 document.addEventListener('keydown', (e) => {
     const isCtrl = e.ctrlKey || e.metaKey;
 
@@ -334,6 +345,22 @@ document.addEventListener('keydown', (e) => {
         document.getElementById('findStr').focus();
     }
 
+    // F3 / Shift+F3: Duyệt kết quả tới/lui (giống Find Next/Previous của trình duyệt),
+    // hoạt động từ bất kỳ đâu trên tab Tìm kiếm & Thay thế, không cần focus vào ô Tìm.
+    if (e.key === 'F3' && document.getElementById('tab-search').classList.contains('active')) {
+        e.preventDefault();
+        navigateOrInitSearch(e.shiftKey ? -1 : 1);
+    }
+
+    // Ctrl + Shift + Enter: Thay thế HIỆN TẠI (tách riêng khỏi Ctrl+Enter = Thay thế Hết)
+    if (isCtrl && e.shiftKey && e.key === 'Enter') {
+        e.preventDefault();
+        if (document.getElementById('tab-search').classList.contains('active')) {
+            replaceOne();
+        }
+        return;
+    }
+
     // Ctrl + Enter: Hành động tùy Tab
     if (isCtrl && e.key === 'Enter') {
         e.preventDefault();
@@ -345,16 +372,20 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Sự kiện riêng cho ô Find: Enter / Shift+Enter
+// Sự kiện riêng cho ô Find: Enter / Shift+Enter = duyệt tới/lui
 document.getElementById('findStr').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault(); // Tránh tạo dòng mới trong textarea
-        
-        if (searchState.isDirty || searchState.matches.length === 0) {
-            initSearch();
-        } else {
-            navMatch(e.shiftKey ? -1 : 1);
-        }
+        navigateOrInitSearch(e.shiftKey ? -1 : 1);
+    }
+});
+
+// Sự kiện riêng cho ô Thay thế bằng: Enter thường = duyệt tới (Shift+Enter vẫn để
+// xuống dòng, phòng khi cần nội dung thay thế nhiều dòng).
+document.getElementById('replaceStr').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault();
+        navigateOrInitSearch(1);
     }
 });
 
