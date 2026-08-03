@@ -1226,32 +1226,44 @@ async function startFetch() {
 
         let text = "";
 
-        // ===== KIỂM TRA OBFUSCATE: float left/right =====
-        const isObfuscated = html && html.includes('float: left') && html.includes('float: right');
+        // ===== 1. Xác định đúng (các) node mục tiêu theo lựa chọn của người dùng TRƯỚC =====
+        let targetNodes = [];
+        if (type === 'custom' && selector) {
+            targetNodes = Array.from(doc.querySelectorAll(selector));
+        } else if (type === 'truyenfull') {
+            targetNodes = [doc.querySelector('#chapter-c')].filter(Boolean);
+        } else if (type === 'wattpadvn') {
+            targetNodes = [doc.querySelector('.truyen')].filter(Boolean);
+        } else {
+            targetNodes = [doc.body];
+        }
+
+        // ===== 2. KIỂM TRA OBFUSCATE (float left/right) CHỈ TRONG PHẠM VI NODE ĐÃ CHỌN =====
+        // (trước đây kiểm tra trên toàn bộ html thô -> dễ bị "dính" bởi float:left/right
+        //  nằm ở quảng cáo/widget khác trên trang, khiến selector/tag/class bị bỏ qua)
+        const scopeHtml = targetNodes.map(n => n.outerHTML || '').join('');
+        const isObfuscated = scopeHtml.includes('float: left') && scopeHtml.includes('float: right');
 
         if (isObfuscated) {
-            UI.log('🔍 Phát hiện HTML bị obfuscate (float left/right) → tiến hành giải mã...', 'info');
-            const decoded = decodeObfuscatedHtml(html);
+            UI.log('🔍 Phát hiện obfuscate (float left/right) trong vùng nội dung đã chọn → tiến hành giải mã...', 'info');
+            const decoded = targetNodes.map(n => decodeFloatSpansIn(n)).filter(Boolean).join('\n\n');
             text = decoded || '';
             if (!text) {
                 UI.log('⚠️ Giải mã không thành công, lấy text gốc', 'warn');
-                text = getSmartText(doc.body);
+                text = targetNodes.map(n => getSmartText(n)).join('\n\n');
             } else {
                 UI.log('✅ Giải mã obfuscate thành công.', 'success');
             }
         } else {
-            // Xử lý thông thường theo selector
-            if (type === 'custom' && selector) {
-                const nodes = doc.querySelectorAll(selector);
-                nodes.forEach(n => text += getSmartText(n) + "\n\n");
-            } else if (type === 'truyenfull') {
+            // Xử lý thông thường theo selector (không obfuscate)
+            if (type === 'truyenfull') {
                 text = (doc.querySelector('.chapter-title')?.textContent || '') + "\n\n" +
-                    getSmartText(doc.querySelector('#chapter-c'));
+                    targetNodes.map(n => getSmartText(n)).join('\n\n');
             } else if (type === 'wattpadvn') {
                 text = (doc.querySelector('.current-chapter')?.textContent || '') + "\n\n" +
-                    getSmartText(doc.querySelector('.truyen'));
+                    targetNodes.map(n => getSmartText(n)).join('\n\n');
             } else {
-                text = getSmartText(doc.body);
+                text = targetNodes.map(n => getSmartText(n)).join('\n\n');
             }
         }
 
